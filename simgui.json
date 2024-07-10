@@ -1,0 +1,209 @@
+{
+  "HALProvider": {
+    "DIO": {
+      "window": {
+        "visible": true
+      }
+    },
+    "Other Devices": {
+      "DutyCycleEncoder[0]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[15]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[17]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[19]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon SRX[20]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon SRX[23]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/Pose": "Field2d",
+      "/SmartDashboard/Arm Brake Command": "Command",
+      "/SmartDashboard/Arm Coast Command": "Command",
+      "/SmartDashboard/Arm Contoller": "ProfiledPIDController",
+      "/SmartDashboard/Arm Controller": "Motor Controller",
+      "/SmartDashboard/Arm to Angle": "Command",
+      "/SmartDashboard/Auto Chooser": "String Chooser",
+      "/SmartDashboard/Auto Path": "Field2d",
+      "/SmartDashboard/Auto Path Preview": "Field2d",
+      "/SmartDashboard/Auto Turning PID": "PIDController",
+      "/SmartDashboard/Autonomous Turning PID": "PIDController",
+      "/SmartDashboard/Cardinal Turning PID": "PIDController",
+      "/SmartDashboard/Control Chooser": "String Chooser",
+      "/SmartDashboard/Control Style Chooser": "String Chooser",
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/Field Test": "Field2d",
+      "/SmartDashboard/Lookup Table: Next Index": "Command",
+      "/SmartDashboard/Lookup Table: Print Setpoint": "Command",
+      "/SmartDashboard/Module 0": "Mechanism2d",
+      "/SmartDashboard/Module 1": "Mechanism2d",
+      "/SmartDashboard/Module 2": "Mechanism2d",
+      "/SmartDashboard/Module 3": "Mechanism2d",
+      "/SmartDashboard/Move Arm To Setpoint": "Command",
+      "/SmartDashboard/Note Detect PID": "ProfiledPIDController",
+      "/SmartDashboard/Note PID": "ProfiledPIDController",
+      "/SmartDashboard/ProfiledPIDController[1]": "ProfiledPIDController",
+      "/SmartDashboard/Robot Pose Field Map": "Field2d",
+      "/SmartDashboard/Run Shooter": "Command",
+      "/SmartDashboard/Shoot on Move Turning PID": "PIDController",
+      "/SmartDashboard/Speed Limit": "String Chooser",
+      "/SmartDashboard/Static Turning PID": "PIDController",
+      "/SmartDashboard/Stop Shooter": "Command",
+      "/SmartDashboard/Update Shooter Gains": "Command",
+      "/SmartDashboard/VisionSystemSim-main/Sim Field": "Field2d",
+      "/SmartDashboard/driveToPose xController": "ProfiledPIDController",
+      "/SmartDashboard/driveToPose yController": "ProfiledPIDController",
+      "/SmartDashboard/driveToPoseHead": "PIDController"
+    },
+    "windows": {
+      "/Pose": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Auto Chooser": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Auto Path Preview": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Auto Turning PID": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Lookup Table: Next Index": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Lookup Table: Print Setpoint": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Robot Pose Field Map": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Run Shooter": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/VisionSystemSim-main/Sim Field": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      }
+    }
+  },
+  "NetworkTables": {
+    "Persistent Values": {
+      "open": false
+    },
+    "Retained Values": {
+      "open": false
+    },
+    "retained": {
+      "SmartDashboard": {
+        "open": true
+      },
+      "limelight": {
+        "open": true
+      }
+    },
+    "transitory": {
+      "LiveWindow": {
+        ".status": {
+          "open": true
+        },
+        "open": true
+      },
+      "Pose": {
+        "double[]##v_/Pose/robotPose": {
+          "open": true
+        },
+        "open": true
+      },
+      "SmartDashboard": {
+        "Robot Pose Field Map": {
+          "double[]##v_/SmartDashboard/Robot Pose Field Map/Robot": {
+            "open": true
+          }
+        },
+        "open": true
+      },
+      "photonvision": {
+        "front_left": {
+          "open": true
+        }
+      }
+    }
+  },
+  "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "Server": {
+      "Subscribers": {
+        "open": true
+      },
+      "open": true
+    },
+    "visible": true
+  }
+}
