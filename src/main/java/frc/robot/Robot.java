@@ -31,6 +31,8 @@ public class Robot extends TimedRobot {
     public void robotInit() {
         m_robotContainer = new RobotContainer();
         
+        m_robotContainer.m_Drivetrain.getDaqThread().setThreadPriority(99);
+
         /* You can display the status of the Scheduler (the code that schedules your commands to run). 
         This is easily done by adding a single line to the RobotInit method in your RobotProgram as shown here. */
         SmartDashboard.putData(CommandScheduler.getInstance());
