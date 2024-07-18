@@ -4,6 +4,7 @@
 
 package frc.robot.Commands;
 
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.Subsystems.Intake.IntakeSubsystem;
 // figure out how to use java.util.function.DoubleSupplier;
 
@@ -35,7 +36,12 @@ public class intakeNote extends Command {
     @Override
     public void execute() {
         // run intake and stage. Then set m_is to true if the stage subsystem's
+        m_intakeSub.intakeForward(IntakeConstants.k_INTAKE_FWD_SPEED);
+        m_stageSub.runStage();
         // beambreak is equal to true
+        if (m_stageSub.isNoteInStage()) {
+            m_isDone = true;
+        }
     }
 
     // Called once the command ends or is interrupted.
@@ -43,6 +49,7 @@ public class intakeNote extends Command {
     public void end(boolean interrupted) {
         m_intakeSub.stopIntake();
         // then stop stage
+        m_stageSub.stopStage();
     }
 
     // Returns true when the command should end.

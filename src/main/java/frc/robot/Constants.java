@@ -42,6 +42,7 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
+        public static final double k_INTAKE_FWD_SPEED = 0.8;
         public static final double k_INTAKE_REV_SPEED = -0.8;
     }
 

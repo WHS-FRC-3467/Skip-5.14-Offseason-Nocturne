@@ -1,6 +1,7 @@
 package frc.robot.Subsystems.Stage;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -22,6 +23,23 @@ import frc.robot.Util.ThriftyNova;
 
 public class StageSubsystem extends SubsystemBase {
 
+        public enum State{
+
+        ON (() -> 1.0),
+        OFF(() -> 0.0);
+
+        private State(DoubleSupplier outputSupplier) {
+            this.outputSupplier = outputSupplier;
+        }
+        private final DoubleSupplier outputSupplier;
+
+        private double getStateOutput() {
+            return outputSupplier.getAsDouble();
+        }
+    }
+
+    private State state = State.OFF;
+
     // Initialize devices
     ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.k_STAGE_CAN_ID);
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.k_INTAKE_BEAM_BREAK);
@@ -36,22 +54,24 @@ public class StageSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-
+        SmartDashboard.putNumber("Stage State", state.getStateOutput());
+        SmartDashboard.putBoolean("Note in Stage", !m_stageBeamBreak.get());
+        SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw());
     }
 
     /**
      * 
-     * @param speed speed to set Stage motor at
+     * @param speed speed that the Stage motor is set at
      */
 
     public boolean isAtSpeed(int speed) {
-
-        if (MathUtil.isNear(speed, thrifty_nova.getVelocity(), StageConstants.k_STAGE_VELOCITY_TOLERANCE)) {
-            return true;
-        }
-        return false;
+        return MathUtil.isNear(speed, thrifty_nova.getVelocity(), StageConstants.k_STAGE_VELOCITY_TOLERANCE);
     }
     
+    public boolean isNoteInStage() {
+        return !m_stageBeamBreak.get();
+    }
+
     public void runStage() {
         thrifty_nova.setPercentOutput(StageConstants.k_STAGE_VELOCITY);
     }
@@ -63,15 +83,13 @@ public class StageSubsystem extends SubsystemBase {
         thrifty_nova.setPercentOutput(0.0);
     }
 
-    // getCurrentDraw() to get the current draw of a thrifty nova
-
     /*
      * Command Factories
      */
 
-             /**
+         /**
          * Speed is set to 0.8
-         * @return runShooter()
+         * @return runStage()
          */
     public Command runStageCommand() {
         return new InstantCommand(() -> runStage());
@@ -84,8 +102,8 @@ public class StageSubsystem extends SubsystemBase {
 
     }
 
-    public Command stopStageCommand() {
-        return new InstantCommand(() -> stopStage());
+    public Command stageOffCommand() {
+        return runOnce(() -> stopStage());
     }
 
 }
