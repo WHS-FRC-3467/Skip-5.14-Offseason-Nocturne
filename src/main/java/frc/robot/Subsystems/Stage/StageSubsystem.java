@@ -25,22 +25,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 public class StageSubsystem extends SubsystemBase {
 
+        @RequiredArgsConstructor
+        @Getter
         public enum State{
 
         FWD (() -> StageConstants.k_STAGE_VELOCITY),
         REV (() -> StageConstants.k_STAGE_REV_VELOCITY),
         OFF(() -> 0.0);
 
-        private State(DoubleSupplier outputSupplier) {
-            this.outputSupplier = outputSupplier;
-        }
         private final DoubleSupplier outputSupplier;
 
         private double getStateOutput() {
             return outputSupplier.getAsDouble();
         }
     }
-
+    
+    @Getter
+    @Setter
     private State state = State.OFF;
 
     // Initialize devices
@@ -60,6 +61,8 @@ public class StageSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Stage State", state.getStateOutput());
         SmartDashboard.putBoolean("Note in Stage", !m_stageBeamBreak.get());
         SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw());
+
+        thrifty_nova.setPercentOutput(state.getStateOutput());
     }
 
     /**
@@ -75,41 +78,19 @@ public class StageSubsystem extends SubsystemBase {
         return !m_stageBeamBreak.get();
     }
 
-    public void runStage() {
-        state = State.FWD;
-        thrifty_nova.setPercentOutput(state.getStateOutput());
-    }
-    public void reverseStage() {
-        state = State.REV;
-        thrifty_nova.setPercentOutput(state.getStateOutput());
-    }
-
-    public void stopStage() {
-        state = State.OFF;
-        thrifty_nova.setPercentOutput(state.getStateOutput());
-    }
-
     /*
      * Command Factories
      */
 
-         /**
-         * Speed is set to 0.8
-         * @return runStage()
-         */
-    public Command runStageCommand() {
-        return new InstantCommand(() -> runStage());
-    }
 
-    public Command reverseStageCommand() {
-        // Inline construction of command goes here.
-        // Subsystem::RunOnce implicitly requires `this` subsystem.
-        return new InstantCommand(() -> reverseStage());
-
-    }
-
-    public Command stageOffCommand() {
-        return runOnce(() -> stopStage());
+    
+    /**
+     * Example command factory method. Periodic tells the intake to run according to the state
+     *
+     * @return a command setting the intake state to the argument
+     */
+    public Command setStateCommand(State stageState) {
+        return runOnce(() -> this.state = stageState);
     }
 
 }
