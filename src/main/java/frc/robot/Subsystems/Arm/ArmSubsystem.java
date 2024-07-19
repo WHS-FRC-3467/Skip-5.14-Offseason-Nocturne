@@ -8,6 +8,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
@@ -42,6 +43,8 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     // Keep track of what the Arm is doing
     ArmState m_ArmState = ArmState.STOWED;
     ArmState m_FutureArm = ArmState.STOWED;
+
+    private final NeutralOut m_neutral = new NeutralOut();
 
     /*
      * Constructor
@@ -96,8 +99,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
          * Apply the configurations to the motors, and set one to follow the other in
          * the same direction
          */
-        //m_armLead.getConfigurator().apply(talonFXConfigurator);
-        //m_armFollow.getConfigurator().apply(talonFXConfigurator);
+        m_armFollow.getConfigurator().apply(limitConfigs);
         m_armFollow.setControl(new Follower(m_armLead.getDeviceID(), true));
 
     }

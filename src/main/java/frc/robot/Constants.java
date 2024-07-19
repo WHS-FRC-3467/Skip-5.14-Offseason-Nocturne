@@ -25,8 +25,8 @@ public final class Constants {
     }
 
     public static class CanConstants {
-        public static final int k_INTAKE_LEFT_CAN_ID = 15;
-        public static final int k_INTAKE_RIGHT_CAN_ID = 16;
+        public static final int k_INTAKE_LEFT_CAN_ID = 19;
+        public static final int k_INTAKE_RIGHT_CAN_ID = 20;
         public static final int k_STAGE_CAN_ID = 17;
     }
 
@@ -69,7 +69,7 @@ public final class Constants {
 
     public static class ArmConstants {
 
-        public static final double kSVolts = 0;
+        public static final double kSVolts = 0.5;
         public static final double kGVolts = 0;
         public static final double kVVoltSecondPerRad = 60;
         public static final double kAVoltSecondSquaredPerRad = 100;

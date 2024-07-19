@@ -4,8 +4,13 @@
 
 package frc.robot.Subsystems.Intake;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+
 //import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -16,13 +21,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
+import frc.robot.Constants.IntakeConstants;
+
 import java.util.function.DoubleSupplier;
 
 public class IntakeSubsystem extends SubsystemBase {
 
     public enum State{
 
-        ON (() -> 1.0),
+        FWD (() -> IntakeConstants.k_INTAKE_FWD_SPEED),
+        REV (() -> IntakeConstants.k_INTAKE_REV_SPEED),
         OFF(() -> 0.0);
 
         private State(DoubleSupplier outputSupplier) {
@@ -41,11 +49,26 @@ public class IntakeSubsystem extends SubsystemBase {
     TalonFX m_intakeLead = new TalonFX(CanConstants.k_INTAKE_LEFT_CAN_ID);
     TalonFX m_intakeFollow = new TalonFX(CanConstants.k_INTAKE_RIGHT_CAN_ID);
 
-    // m_intakeLead.setNeutralMode(1);
-
     /** Creates a new IntakeSubsystem. */
     public IntakeSubsystem() {
+        
+        var talonFXConfigurator = m_intakeLead.getConfigurator();
+        var limitConfigs = new CurrentLimitsConfigs();
+        var outputConfigs = new MotorOutputConfigs();
 
+        // enable stator current limit
+        limitConfigs.StatorCurrentLimit = 120;
+        limitConfigs.StatorCurrentLimitEnable = true;
+
+        // Set brake as neutralmodevalue
+        outputConfigs.NeutralMode = NeutralModeValue.Brake;
+
+        talonFXConfigurator.apply(limitConfigs);
+        talonFXConfigurator.apply(outputConfigs);
+        
+        m_intakeFollow.getConfigurator().apply(limitConfigs);
+        m_intakeFollow.getConfigurator().apply(outputConfigs);
+        m_intakeFollow.setControl(new Follower(m_intakeLead.getDeviceID(), true));
     }
 
     @Override
@@ -75,18 +98,20 @@ public class IntakeSubsystem extends SubsystemBase {
     public void intakeForward(double speed) {
         // Actually tell motors to run at the speed
         if (Math.abs(speed) >= 0.1) {
-            m_intakeLead.set(speed);
+            if (speed < 0.0) {
+                state = State.REV;
+            } else {
+                state = State.FWD;
+            }
+            m_intakeLead.set(state.getStateOutput());
         }
     }
 
-    public void intakeReverse(double speed) {
-        if (speed <= -0.1) {
-            m_intakeLead.set(speed);
-        }
-    }
+
 
     public void stopIntake() {
-        m_intakeLead.set(0.0);
+        state = State.OFF;
+        m_intakeLead.set(state.getStateOutput());
     }
 
     /**

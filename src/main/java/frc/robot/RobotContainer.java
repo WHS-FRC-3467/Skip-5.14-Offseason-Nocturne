@@ -37,6 +37,7 @@ import frc.robot.Subsystems.Stage.StageSubsystem;
 // import frc.robot.Subsystems.LED.LEDSubsystem;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 // import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -202,6 +203,7 @@ public class RobotContainer {
         m_driverController.x().onTrue(m_IntakeSubsystem.intakeOnCommand(0.7));
         // Intake Command
         m_driverController.leftTrigger().onTrue(new intakeNote(m_IntakeSubsystem, m_StageSubsystem));
+        m_driverController.leftTrigger().onTrue(Commands.parallel(m_IntakeSubsystem.intakeOnCommand(0.8), m_StageSubsystem.runStageCommand()));
         // Expel note - Manual outtake
         m_driverController.rightTrigger().onTrue(new ParallelCommandGroup(m_IntakeSubsystem.intakeOnCommand(Constants.IntakeConstants.k_INTAKE_REV_SPEED), m_StageSubsystem.reverseStageCommand()));
         // Once the button is lifted, the intake should go back to its default command

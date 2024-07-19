@@ -56,7 +56,6 @@ public class ShooterSubsystem extends SubsystemBase {
         
         m_shooterRight.getConfigurator().apply(limitConfigs);
         m_shooterRight.getConfigurator().apply(outputConfigs);
-        m_shooterRight.setControl(new Follower(m_shooterLeft.getDeviceID(), true));
 
     }
 

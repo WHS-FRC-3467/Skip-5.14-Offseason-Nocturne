@@ -25,7 +25,8 @@ public class StageSubsystem extends SubsystemBase {
 
         public enum State{
 
-        ON (() -> 1.0),
+        FWD (() -> StageConstants.k_STAGE_VELOCITY),
+        REV (() -> StageConstants.k_STAGE_REV_VELOCITY),
         OFF(() -> 0.0);
 
         private State(DoubleSupplier outputSupplier) {
@@ -73,14 +74,17 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     public void runStage() {
-        thrifty_nova.setPercentOutput(StageConstants.k_STAGE_VELOCITY);
+        state = State.FWD;
+        thrifty_nova.setPercentOutput(state.getStateOutput());
     }
     public void reverseStage() {
-        thrifty_nova.setPercentOutput(StageConstants.k_STAGE_REV_VELOCITY);
+        state = State.REV;
+        thrifty_nova.setPercentOutput(state.getStateOutput());
     }
 
     public void stopStage() {
-        thrifty_nova.setPercentOutput(0.0);
+        state = State.OFF;
+        thrifty_nova.setPercentOutput(state.getStateOutput());
     }
 
     /*
