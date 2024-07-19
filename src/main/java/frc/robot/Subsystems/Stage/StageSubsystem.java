@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 // import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
@@ -44,6 +45,24 @@ public class StageSubsystem extends SubsystemBase {
     @Setter
     private State state = State.OFF;
 
+    @RequiredArgsConstructor
+    @Getter
+    public enum BeamState{
+
+        OPEN (() -> false), // Note not in stage
+        CLOSED(() -> true); // Note in stage
+
+        private final BooleanSupplier bbSupplier;
+
+        private boolean getStateOutput() {
+            return bbSupplier.getAsBoolean();
+        }
+    }
+    
+    @Getter
+    @Setter
+    private BeamState beambreak = BeamState.OPEN;
+
     // Initialize devices
     ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.k_STAGE_CAN_ID);
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.k_INTAKE_BEAM_BREAK);
@@ -63,6 +82,13 @@ public class StageSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw());
 
         thrifty_nova.setPercentOutput(state.getStateOutput());
+
+        // Change state of beambreak boolean supplier as necessary
+        if ((beambreak == BeamState.OPEN) && (!m_stageBeamBreak.get())) {
+            beambreak = BeamState.CLOSED; // If note in stage, close beamstate
+        } else if ((beambreak == BeamState.OPEN) && (m_stageBeamBreak.get())){
+            beambreak = BeamState.OPEN; // If note not in stage anymore, open beamstate
+        }
     }
 
     /**
@@ -82,10 +108,17 @@ public class StageSubsystem extends SubsystemBase {
      * Command Factories
      */
 
-
+    /**
+     * Run Stage until note is detected, which ends the command
+     *
+     * @return a command setting the intake state to the argument
+     */
+    public Command runStageUntilNoteCommand() {
+        return new RunCommand(()-> setStateCommand(State.FWD)).until(beambreak.getBbSupplier());
+    }
     
     /**
-     * Example command factory method. Periodic tells the intake to run according to the state
+     * Example command factory method. Periodic tells the stage to run according to the state
      *
      * @return a command setting the intake state to the argument
      */

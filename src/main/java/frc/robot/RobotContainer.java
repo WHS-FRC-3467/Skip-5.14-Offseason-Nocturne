@@ -124,8 +124,8 @@ public class RobotContainer {
         SmartDashboard.putData("Speed Limit", speedChooser);
 
         // Set Default Commands
-        m_IntakeSubsystem.setDefaultCommand(m_IntakeSubsystem.intakeOffCommand());
-        m_StageSubsystem.setDefaultCommand(m_StageSubsystem.stageOffCommand());
+        m_IntakeSubsystem.setDefaultCommand(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.OFF));
+        m_StageSubsystem.setDefaultCommand(m_StageSubsystem.setStateCommand(StageSubsystem.State.OFF));
         // Configure the trigger bindings
         configureBindings();
     }
@@ -146,9 +146,9 @@ public class RobotContainer {
      */
     private void configureBindings() {
         // Control style: Two joysticks
-        controlStyle = () -> drive.withVelocityX(-m_operatorController.getLeftY() * MaxSpeed) // Drive forward -Y
-        .withVelocityY(-m_operatorController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-        .withRotationalRate(-m_operatorController.getRightX() * AngularRate); // Drive counterclockwise with negative X (left)
+        controlStyle = () -> drive.withVelocityX(-m_driverController.getLeftY() * MaxSpeed) // Drive forward -Y
+        .withVelocityY(-m_driverController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+        .withRotationalRate(-m_driverController.getRightX() * AngularRate); // Drive counterclockwise with negative X (left)
         try {
             m_Drivetrain.getDefaultCommand().cancel();
           } catch(Exception e) {}
@@ -199,11 +199,11 @@ public class RobotContainer {
         // A button: stop shooter
         m_driverController.a().onTrue(m_ShooterSubsystem.stopShooterCommand());
         // Manual Intake
-        m_driverController.x().onTrue(m_IntakeSubsystem.intakeOnCommand(0.7));
-        // Intake Command
-        m_driverController.leftTrigger().onTrue(new intakeNote(m_IntakeSubsystem, m_StageSubsystem));
+        m_driverController.x().onTrue(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD));
+        // Intake Note Command
+        m_driverController.leftTrigger().whileTrue(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD), m_StageSubsystem.runStageUntilNoteCommand()));
         // Expel note - Manual outtake
-        m_driverController.rightTrigger().onTrue(new ParallelCommandGroup(m_IntakeSubsystem.intakeOnCommand(Constants.IntakeConstants.k_INTAKE_REV_SPEED), m_StageSubsystem.reverseStageCommand()));
+        m_driverController.rightTrigger().onTrue(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.REV), m_StageSubsystem.setStateCommand(StageSubsystem.State.REV)));
         // Once the button is lifted, the intake should go back to its default command
     }
 
