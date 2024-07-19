@@ -20,7 +20,9 @@ import frc.robot.Constants.ShooterConstants.ShooterState;
 import frc.robot.Constants.StageConstants;
 // import frc.robot.sim.PhysicsSim;
 import frc.robot.Util.ThriftyNova;
-
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 public class StageSubsystem extends SubsystemBase {
 
         public enum State{

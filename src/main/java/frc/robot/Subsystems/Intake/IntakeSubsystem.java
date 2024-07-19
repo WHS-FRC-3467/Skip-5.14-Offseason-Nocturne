@@ -22,20 +22,21 @@ import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.IntakeConstants;
-
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import java.util.function.DoubleSupplier;
 
 public class IntakeSubsystem extends SubsystemBase {
 
+    @RequiredArgsConstructor
+    @Getter
     public enum State{
 
         FWD (() -> IntakeConstants.k_INTAKE_FWD_SPEED),
         REV (() -> IntakeConstants.k_INTAKE_REV_SPEED),
         OFF(() -> 0.0);
 
-        private State(DoubleSupplier outputSupplier) {
-            this.outputSupplier = outputSupplier;
-        }
         private final DoubleSupplier outputSupplier;
 
         private double getStateOutput() {
@@ -43,6 +44,8 @@ public class IntakeSubsystem extends SubsystemBase {
         }
     }
 
+    @Getter
+    @Setter
     private State state = State.OFF;
 
     // Initalize Motors and Beam Break
@@ -74,7 +77,9 @@ public class IntakeSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
-        SmartDashboard.putNumber("Intake State", state.getStateOutput());
+        SmartDashboard.putString("Intake State", getState().toString());
+
+        m_intakeLead.set(state.getStateOutput());
     }
 
     @Override
@@ -95,39 +100,12 @@ public class IntakeSubsystem extends SubsystemBase {
         return MathUtil.isNear(targetSpeed, intakeAverage, tolerance);
     }
 
-    public void intakeForward(double speed) {
-        // Actually tell motors to run at the speed
-        if (Math.abs(speed) >= 0.1) {
-            if (speed < 0.0) {
-                state = State.REV;
-            } else {
-                state = State.FWD;
-            }
-            m_intakeLead.set(state.getStateOutput());
-        }
-    }
-
-
-
-    public void stopIntake() {
-        state = State.OFF;
-        m_intakeLead.set(state.getStateOutput());
-    }
-
     /**
-     * Example command factory method.
+     * Example command factory method. Periodic tells the intake to run according to the state
      *
-     * @return a command
+     * @return a command setting the intake state to the argument
      */
-
-    public Command intakeOnCommand(double speed) {
-        // Inline construction of command goes here.
-        // Subsystem::RunOnce implicitly requires `this` subsystem.
-        return runOnce(
-                () -> intakeForward(speed));
-    }
-
-    public Command intakeOffCommand() {
-        return runOnce(() -> stopIntake());
+    public Command setStateCommand(State intakestate) {
+        return runOnce(() -> this.state = intakestate);
     }
 }
