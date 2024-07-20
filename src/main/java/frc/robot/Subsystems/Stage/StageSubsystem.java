@@ -16,8 +16,6 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.ShooterConstants.ShooterState;
 import frc.robot.Constants.StageConstants;
 // import frc.robot.sim.PhysicsSim;
 import frc.robot.Util.ThriftyNova;

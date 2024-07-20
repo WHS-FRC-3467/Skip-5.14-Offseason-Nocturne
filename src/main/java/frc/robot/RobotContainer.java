@@ -16,7 +16,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -26,13 +25,14 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 
-import frc.robot.Commands.intakeNote;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Commands.intakeNote;
+import frc.robot.Subsystems.Arm.ArmSubsystem;
+import frc.robot.Subsystems.Arm.ArmSubsystem.ArmState;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
 import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
+import frc.robot.Subsystems.Shooter.ShooterSubsystem.ShooterState;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 // import frc.robot.Subsystems.LED.LEDSubsystem;
 
@@ -71,10 +71,11 @@ public class RobotContainer {
     private final IntakeSubsystem m_IntakeSubsystem = new IntakeSubsystem();
     private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
     private final StageSubsystem m_StageSubsystem = new StageSubsystem();
+    private final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
     private final Limelight m_LimeLight = new Limelight("ll");
     // Instantiate driver and operator controllers
-    CommandXboxPS5Controller m_driverController = new CommandXboxPS5Controller(0);
-    CommandXboxPS5Controller m_operatorController = new CommandXboxPS5Controller(1);
+    CommandXboxPS5Controller m_driverController = new CommandXboxPS5Controller(OperatorConstants.kDriverControllerPort);
+    CommandXboxPS5Controller m_operatorController = new CommandXboxPS5Controller(OperatorConstants.kOperatorControllerPort);
     GenericHID m_driveRmbl = m_driverController.getHID();
     GenericHID m_operatorRmbl = m_operatorController.getHID();
   
@@ -195,15 +196,17 @@ public class RobotContainer {
 
         // Bindings that would be used in a match
         // Schedule `runShooterCommand` when the Xbox controller's B button is pressed,cancelling on release.
-        m_driverController.b().onTrue(m_ShooterSubsystem.runShooterCommand());
+        m_driverController.b().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.REVVING));
         // A button: stop shooter
-        m_driverController.a().onTrue(m_ShooterSubsystem.stopShooterCommand());
+        m_driverController.a().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.STOP));
         // Manual Intake
         m_driverController.x().onTrue(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD));
         // Intake Note Command
-        m_driverController.leftTrigger().whileTrue(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD), m_StageSubsystem.runStageUntilNoteCommand()));
+        m_driverController.leftTrigger().whileTrue(m_ArmSubsystem.setStateCommand(ArmState.STOWED)
+            .until(m_ArmSubsystem.isArmAtState())
+            .andThen(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD), m_StageSubsystem.runStageUntilNoteCommand())));
         // Expel note - Manual outtake
-        m_driverController.rightTrigger().onTrue(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.REV), m_StageSubsystem.setStateCommand(StageSubsystem.State.REV)));
+        m_driverController.rightTrigger().whileTrue(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.REV), m_StageSubsystem.setStateCommand(StageSubsystem.State.REV)));
         // Once the button is lifted, the intake should go back to its default command
     }
 

@@ -5,23 +5,30 @@
 package frc.robot.Subsystems.Arm;
 
 import com.ctre.phoenix6.hardware.CANcoder;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
-import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
-import frc.robot.Constants.ArmConstants.ArmState;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /* 
  * ArmSubsystem - Subsystem to control all Arm motion using a Trapezoidal Profiled PID controller
@@ -41,8 +48,42 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
             ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
 
     // Keep track of what the Arm is doing
+    //First double is setpoint angle in degrees, second double is tolerance
+    @RequiredArgsConstructor
+    @Getter
+    public enum ArmState {
+        STOWED(()-> -22.0, ()-> 2.0),
+        SUBWOOFER(()-> -20.0, ()-> 2.0),
+        PODIUM  (()-> -2.0, ()-> 0.5),
+        WING    (()-> 10.0, ()-> 0.5), // Specific Wing Shot
+        AMP     (()-> 90.0, ()-> 0.5),
+        CLIMB   (()-> 95.0, ()-> 1.0),
+        HARMONY (()-> 100.0, ()-> 1.0),
+        AIMING  (()-> 40, ()-> 2.0),      // Dynamic
+        MOVING  (()-> 50, ()-> 2.0),      // Dynamic
+        FEED    (()-> 0.0, ()-> 2.0);
+
+        private final DoubleSupplier angleSupplier;
+        private final DoubleSupplier toleranceSupplier;
+
+        private double getStateOutput() {
+            return angleSupplier.getAsDouble();
+        }
+
+        private double getTolerance() {
+            return toleranceSupplier.getAsDouble();
+        }
+    }
+    
+    @Getter
+    @Setter
     ArmState m_ArmState = ArmState.STOWED;
-    ArmState m_FutureArm = ArmState.STOWED;
+
+    @Getter
+    @Setter
+    ArmState m_FutureArm = ArmState.STOWED; // May be marked for depreciation
+
+    public BooleanSupplier isAtState = ()-> false;
 
     private final NeutralOut m_neutral = new NeutralOut();
 
@@ -64,14 +105,13 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         setGoal(ArmConstants.k_ARM_ENCODER_OFFSET_RADIANS);
 
         // https://v6.docs.ctr-electronics.com/en/latest/docs/hardware-reference/talonfx/improving-performance-with-current-limits.html
-        var talonFXConfigurator = m_armLead.getConfigurator();
-        var limitConfigs = new CurrentLimitsConfigs();
-
+        var talonFXConfigurator = new TalonFXConfiguration();
         // enable stator current limit
-        limitConfigs.StatorCurrentLimit = 120;
-        limitConfigs.StatorCurrentLimitEnable = true;
+        talonFXConfigurator.CurrentLimits.StatorCurrentLimit = 120;
+        talonFXConfigurator.CurrentLimits.StatorCurrentLimitEnable = true;
 
-        talonFXConfigurator.apply(limitConfigs);
+        // Set brake as neutralmodevalue
+        talonFXConfigurator.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         // Check this out: https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/api-usage/configuration.html
         /*
@@ -99,7 +139,8 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
          * Apply the configurations to the motors, and set one to follow the other in
          * the same direction
          */
-        m_armFollow.getConfigurator().apply(limitConfigs);
+        m_armLead.getConfigurator().apply(talonFXConfigurator);   
+        m_armFollow.getConfigurator().apply(talonFXConfigurator);
         m_armFollow.setControl(new Follower(m_armLead.getDeviceID(), true));
 
     }
@@ -108,6 +149,9 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     public void periodic() {
 
         // Put the measurement of the arm and state of the arm on shuffleboard
+        
+        // Constantly check to see if arm is at setpoint
+        isArmAtState();
     }
 
     @Override
@@ -124,8 +168,21 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     @Override
     protected double getMeasurement() {
         //getAbsolutePosition returns in rotations, not radians, hence the x2pi
+        // returns in radians
         return (m_armEncoder.getAbsolutePosition().getValueAsDouble()*2*Math.PI) - ArmConstants.k_ARM_ENCODER_OFFSET_RADIANS;
 
     }
 
+    public BooleanSupplier isArmAtState() {
+        if (MathUtil.isNear(Math.toRadians(m_ArmState.getStateOutput()), getMeasurement(), m_ArmState.getTolerance())) {
+            isAtState = ()-> true;
+            return ()-> true;
+        }
+        isAtState = ()-> false;
+        return ()-> false;
+    }
+
+    public Command setStateCommand(ArmState state) {
+        return runOnce(() -> this.m_ArmState = state);
+    }
 }

@@ -22,6 +22,7 @@ import frc.robot.generated.TunerConstants;
 public final class Constants {
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;
+        public static final int kOperatorControllerPort = 1;
     }
 
     public static class CanConstants {
@@ -47,15 +48,7 @@ public final class Constants {
     }
 
     public static class ShooterConstants {
-        // This enum is used to keep track of what the shooter is and should be doing.
-        // Example: ShooterState currentShooterState = ShooterState.SPOOLING;
-        public enum ShooterState {
-            STOP,
-            SPOOLING,
-            REVVING,
-            READY,
-            REVERSE
-        }
+
         public static final double k_DEFAULT_FWD_VELOCITY = 0.8;
         public static final double k_SHOOTER_REV_VELOCITY = -0.8;
         public static final double k_SHOOTER_VELOCITY_TOLERANCE = 5;
@@ -82,19 +75,6 @@ public final class Constants {
         public static final double kMaxAccelerationRadPerSecSquared = 200;
 
         public static final double k_ARM_ENCODER_OFFSET_RADIANS = 0;
-
-        public enum ArmState {
-            STOWED,
-            SUBWOOFER,
-            PODIUM,
-            WING,
-            AMP,
-            CLIMB,
-            HARMONY,
-            AIMING,
-            MOVING,
-            FEED
-        }
 
     }
 

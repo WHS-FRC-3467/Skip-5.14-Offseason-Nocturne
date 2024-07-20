@@ -1,5 +1,7 @@
 package frc.robot.Subsystems.Shooter;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -22,11 +24,13 @@ import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 //import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.Constants.ShooterConstants.ShooterState;
 import frc.robot.Constants.StageConstants;
 import frc.robot.Util.Setpoints;
 import frc.robot.Util.TunableNumber;
 //import frc.robot.sim.PhysicsSim;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -34,113 +38,83 @@ public class ShooterSubsystem extends SubsystemBase {
     TalonFX m_shooterLeft = new TalonFX(18);
     TalonFX m_shooterRight = new TalonFX(19);
 
-    // Declare ShooterState Variables - keep track of what the shooter is doing
+    /* Declare ShooterState Variables - This enum is used to keep track of what the shooter is doing
+    *   Numbers should be in rotations per second. Left supplier corresponds to left shooter motor, right supplier to right shooter motor
+    *   Example: ShooterState currentShooterState = ShooterState.SPOOLING;
+    */ 
+    @RequiredArgsConstructor
+    @Getter
+    public enum ShooterState {
+        STOP    (()-> 0.0, ()-> 0.0),
+        SPOOLING(()-> 10.0, ()-> 10.0), // Poop & Scoot
+        REVVING (()-> 40.0, ()-> 35.0), // Dynamic
+        READY   (()-> Constants.ShooterConstants.k_DEFAULT_FWD_VELOCITY, ()-> Constants.ShooterConstants.k_DEFAULT_FWD_VELOCITY), // Shooter constants?
+        REVERSE (()-> Constants.ShooterConstants.k_SHOOTER_REV_VELOCITY, ()-> Constants.ShooterConstants.k_SHOOTER_REV_VELOCITY); // Hopefully never have to use this irl
+
+        private final DoubleSupplier leftSupplier;
+        private final DoubleSupplier rightSupplier;
+
+        private double getLeftStateOutput() {
+            return leftSupplier.getAsDouble();
+        }
+
+        private double getRightStateOutput() {
+            return rightSupplier.getAsDouble();
+        }
+    }
+
+    @Getter
+    @Setter
     ShooterState m_ShooterState = ShooterState.STOP;
-    ShooterState m_GoalState = ShooterState.STOP;
+
+    @Getter
+    @Setter
+    ShooterState m_GoalState = ShooterState.STOP; // May be depreciated we'll see
 
     public ShooterSubsystem() {
         
-        var talonFXConfigurator = m_shooterLeft.getConfigurator();
-        var limitConfigs = new CurrentLimitsConfigs();
-        var outputConfigs = new MotorOutputConfigs();
-
+        var talonFXConfigurator = new TalonFXConfiguration();
         // enable stator current limit
-        limitConfigs.StatorCurrentLimit = 120;
-        limitConfigs.StatorCurrentLimitEnable = true;
+        talonFXConfigurator.CurrentLimits.StatorCurrentLimit = 120;
+        talonFXConfigurator.CurrentLimits.StatorCurrentLimitEnable = true;
 
         // Set brake as neutralmodevalue
-        outputConfigs.NeutralMode = NeutralModeValue.Brake;
+        talonFXConfigurator.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-        talonFXConfigurator.apply(limitConfigs);
-        talonFXConfigurator.apply(outputConfigs);
-        
-        m_shooterRight.getConfigurator().apply(limitConfigs);
-        m_shooterRight.getConfigurator().apply(outputConfigs);
+        m_shooterLeft.getConfigurator().apply(talonFXConfigurator);   
+        m_shooterRight.getConfigurator().apply(talonFXConfigurator);
 
     }
 
     @Override
     public void periodic() {
-        SmartDashboard.putBoolean("Shooter at speed", isShooterAtSpeed(getSpeedSetPoint()));
-        SmartDashboard.putString("Shooter state", getShooterState().toString());
+        SmartDashboard.putBoolean("Shooter at speed", isShooterAtSpeed());
+        SmartDashboard.putString("Shooter state", getM_ShooterState().toString());
+
+        // Will be phased out to VelocityVoltage reqest using setControl(Velocity Voltage request) from CoreTalonFX
+        m_shooterLeft.set(m_ShooterState.getLeftStateOutput()/100);
+        m_shooterRight.set(m_ShooterState.getLeftStateOutput()/100);
+
     }
 
-    public ShooterState getShooterState() {
-        return m_ShooterState;
-    }
-
-    public double getSpeedSetPoint() {
-        // TODO: make the (goal) shooter state enum associate to double values that represent speed
-        return 0.0;
-    }
-
-    public boolean isShooterAtSpeed(double expectedVelocity) {
+    public boolean isShooterAtSpeed() {
         // TalonFX getVelocity() gets the Velocity of the device in mechanism rotations per second
-        if (MathUtil.isNear(expectedVelocity, m_shooterLeft.getVelocity().getValueAsDouble(), ShooterConstants.k_SHOOTER_VELOCITY_TOLERANCE)) {
-            m_ShooterState = ShooterState.READY;
+        double leftError = Math.abs(m_ShooterState.getLeftStateOutput() - m_shooterLeft.getVelocity().getValueAsDouble());
+        double rightError = Math.abs(m_ShooterState.getRightStateOutput() - m_shooterRight.getVelocity().getValueAsDouble());
+        if ((leftError + rightError)/2 < ShooterConstants.k_SHOOTER_VELOCITY_TOLERANCE) {
+            m_GoalState = ShooterState.READY;
             return true;
         }
         return false;
-        // .get gets the set speed from 0 to 1. 319/3 is the free speed of a Falcon 500 (rotations per second)
     }
     
-    public void runShooter(double speed, boolean isSpooling) {
-        // Actually tell motors to run at the speed
-        if (speed >= 0.1) {
-            m_shooterLeft.set(speed);
-            if (isSpooling){
-                m_ShooterState = ShooterState.SPOOLING;
-            } else {
-            m_ShooterState = ShooterState.REVVING;
-            }
-        }
-    }
-
-    public void runShooter() {
-        m_shooterLeft.set(Constants.ShooterConstants.k_DEFAULT_FWD_VELOCITY);
-        m_ShooterState = ShooterState.REVVING;
-    }
-    public void reverseShooter() {
-        m_shooterLeft.set(Constants.ShooterConstants.k_SHOOTER_REV_VELOCITY);
-        m_ShooterState = ShooterState.REVERSE;
-        m_GoalState = ShooterState.REVERSE;
-    }
-
-    public void stopShooter() {
-        m_shooterLeft.stopMotor();
-        m_GoalState = ShooterState.STOP;
-    }
-
         /**
-     * Example command factory method.
-     *
-     * @return runShooter(speed)
-     */
-
-    public Command runShooterCommand(double speed, boolean isSpooling) {
-        // Inline construction of command goes here.
-        // Subsystem::RunOnce implicitly requires `this` subsystem.
-        return runOnce(
-                () -> runShooter(speed, isSpooling));
-    }
-
-        /**
-         * Speed is set to 0.8
-         * @return runShooter()
+         * Command factory method. Parameter is a ShooterState enum value
+         * @return runOnce that sets m_ShooterState to parameter
          */
-    public Command runShooterCommand() {
-        return runOnce(() -> runShooter());
-    }
-
-    public Command reverseShooterCommand() {
+    public Command setStateCommand(ShooterState state) {
         // Inline construction of command goes here.
         // Subsystem::RunOnce implicitly requires `this` subsystem.
-        return runOnce(() -> reverseShooter());
-
-    }
-
-    public Command stopShooterCommand() {
-        return runOnce(() -> stopShooter());
-    }
-
+        return runOnce(() -> this.m_ShooterState = state);
+      }
 }
