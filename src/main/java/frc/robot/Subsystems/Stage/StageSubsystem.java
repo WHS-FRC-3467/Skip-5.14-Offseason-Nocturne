@@ -24,11 +24,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 public class StageSubsystem extends SubsystemBase {
 
-        @RequiredArgsConstructor
-        @Getter
-        public enum State{
+    @RequiredArgsConstructor
+    @Getter
+    public enum State{
 
-        FWD (() -> StageConstants.k_STAGE_VELOCITY),
+        INTAKE (() -> StageConstants.k_STAGE_VELOCITY),
+        SHOOTING (() -> StageConstants.kFeedToShooterSpeed),
+        AMP (() -> StageConstants.kFeedToAmpSpeed),
         REV (() -> StageConstants.k_STAGE_REV_VELOCITY),
         OFF(() -> 0.0);
 
@@ -57,6 +59,7 @@ public class StageSubsystem extends SubsystemBase {
         }
     }
     
+    // To get a boolean supplier for the beam break to use in commands
     @Getter
     @Setter
     private BeamState beambreak = BeamState.OPEN;
@@ -75,7 +78,8 @@ public class StageSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Stage State", state.getStateOutput());
+        SmartDashboard.putNumber("Stage Setpoint Velocity", state.getStateOutput());
+        SmartDashboard.putNumber("Stage 'Velocity'", thrifty_nova.getVelocity());
         SmartDashboard.putBoolean("Note in Stage", !m_stageBeamBreak.get());
         SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw());
 
@@ -94,8 +98,8 @@ public class StageSubsystem extends SubsystemBase {
      * @param speed speed that the Stage motor is set at
      */
 
-    public boolean isAtSpeed(int speed) {
-        return MathUtil.isNear(speed, thrifty_nova.getVelocity(), StageConstants.k_STAGE_VELOCITY_TOLERANCE);
+    public boolean isAtSpeed() {
+        return MathUtil.isNear(state.getStateOutput(), thrifty_nova.getVelocity(), StageConstants.k_STAGE_VELOCITY_TOLERANCE);
     }
     
     public boolean isNoteInStage() {
@@ -112,7 +116,7 @@ public class StageSubsystem extends SubsystemBase {
      * @return a command setting the intake state to the argument
      */
     public Command runStageUntilNoteCommand() {
-        return new RunCommand(()-> setStateCommand(State.FWD)).until(beambreak.getBbSupplier());
+        return new RunCommand(()-> setStateCommand(State.INTAKE)).until(beambreak.getBbSupplier());
     }
     
     /**

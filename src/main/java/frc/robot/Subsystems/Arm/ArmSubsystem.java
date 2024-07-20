@@ -151,7 +151,9 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         // Put the measurement of the arm and state of the arm on shuffleboard
         
         // Constantly check to see if arm is at setpoint
-        isArmAtState();
+        if (!isArmAtState().getAsBoolean()){
+            // useOutput()
+        }
     }
 
     @Override
