@@ -39,8 +39,8 @@ import lombok.Setter;
  */
 public class ArmSubsystem extends ProfiledPIDSubsystem {
 
-    TalonFX m_armLead = new TalonFX(CanConstants.k_INTAKE_LEFT_CAN_ID);
-    TalonFX m_armFollow = new TalonFX(CanConstants.k_INTAKE_RIGHT_CAN_ID);
+    TalonFX m_armLead = new TalonFX(CanConstants.ID_ArmLeader);
+    TalonFX m_armFollow = new TalonFX(CanConstants.ID_ArmFollower);
     CANcoder m_armEncoder  = new CANcoder(DIOConstants.k_ARM_ENCODER_ID);
 
     private final ArmFeedforward m_feedforward = new ArmFeedforward(
@@ -52,7 +52,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     @RequiredArgsConstructor
     @Getter
     public enum ArmState {
-        STOWED(()-> -22.0, ()-> 2.0),
+        STOWED  (()-> -22.0, ()-> 2.0),
         SUBWOOFER(()-> -20.0, ()-> 2.0),
         PODIUM  (()-> -2.0, ()-> 0.5),
         WING    (()-> 10.0, ()-> 0.5), // Specific Wing Shot
