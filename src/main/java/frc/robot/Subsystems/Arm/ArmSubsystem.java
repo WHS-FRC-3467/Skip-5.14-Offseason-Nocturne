@@ -21,6 +21,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 import frc.robot.Constants.ArmConstants;
@@ -149,11 +150,10 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     public void periodic() {
 
         // Put the measurement of the arm and state of the arm on shuffleboard
-        
-        // Constantly check to see if arm is at setpoint
-        if (!isArmAtState().getAsBoolean()){
-            // useOutput()
-        }
+        SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
+        SmartDashboard.putString("Arm state", getM_ArmState().toString());
+        SmartDashboard.putNumber("Arm Angle Corrected", getMeasurement());
+        SmartDashboard.putNumber("Arm Angle uncorrected", getMeasurement() + ArmConstants.k_ARM_ENCODER_OFFSET_RADIANS);
     }
 
     @Override
@@ -184,7 +184,14 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         return ()-> false;
     }
 
+    /* return a command that:
+    *  1. Change the Armstate
+    *  2. Sets the m_controller's tolerance from parent ProfiledPIDSubsystem class to what the state machine dictates
+    *  3. Because the state has just changed, set a new goal state in ProfiledPIDSubsystem
+    */
     public Command setStateCommand(ArmState state) {
-        return runOnce(() -> this.m_ArmState = state);
+        return runOnce(() -> this.m_ArmState = state)
+        .andThen(()-> this.m_controller.setTolerance(m_ArmState.getTolerance()))
+        .andThen(()-> setGoal(m_ArmState.getStateOutput()));
     }
 }
