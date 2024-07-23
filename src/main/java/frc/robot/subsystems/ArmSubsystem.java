@@ -74,8 +74,6 @@ public class ArmSubsystem extends SubsystemBase {
 
   /** Creates a new ArmSubsystem. */
   public ArmSubsystem() {
-    pidController.setTolerance(tolerance);
-    pidController.setIZone(100); // TODO: Figure out actual value
 
     var m_configuration = new TalonFXConfiguration();
     m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -87,6 +85,9 @@ public class ArmSubsystem extends SubsystemBase {
     m_encoder.setDutyCycleRange(1.0/1025.0, 1024.0/1025.0);
     m_encoder.setDistancePerRotation(2*Math.PI);
     m_encoder.setPositionOffset(0);
+
+    pidController.setTolerance(tolerance);
+    pidController.setIZone(100); // TODO: Figure out actual value
 
   }
 
