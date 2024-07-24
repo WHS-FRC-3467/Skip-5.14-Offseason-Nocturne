@@ -20,16 +20,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-public class IntakeSubsystem extends SubsystemBase {
-
-  TalonFX m_intakeMotor = new TalonFX(0);
-  private final DutyCycleOut m_percent = new DutyCycleOut(0);
-  private final NeutralOut m_brake = new NeutralOut();
+public class Intake extends SubsystemBase {
 
   @RequiredArgsConstructor
   @Getter
   public enum State {
-    COLLECTING(() -> 0.7),
+    INTAKE(() -> 0.7),
     EJECTING(() -> -0.3),
     OFF(() -> 0.0);
 
@@ -44,8 +40,12 @@ public class IntakeSubsystem extends SubsystemBase {
   @Setter
   private State state = State.OFF;
 
+  TalonFX m_intakeMotor = new TalonFX(0);
+  private final DutyCycleOut m_percent = new DutyCycleOut(0);
+  private final NeutralOut m_neutralOutput = new NeutralOut();
+
   /** Creates a new IntakeSubsystem. */
-  public IntakeSubsystem() {
+  public Intake() {
     var m_configuration = new TalonFXConfiguration();
     m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_configuration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -60,11 +60,11 @@ public class IntakeSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     displayInfo(true);
     if (state == State.OFF) {
-      m_intakeMotor.setControl(m_brake);
+      m_intakeMotor.setControl(m_neutralOutput);
     } else {
       m_intakeMotor.setControl(m_percent.withOutput(state.getStateOutput()));
     }
-    
+
   }
 
   private void displayInfo(boolean debug) {
@@ -74,10 +74,10 @@ public class IntakeSubsystem extends SubsystemBase {
       SmartDashboard.putNumber("Intake Output ", m_intakeMotor.getMotorVoltage().getValueAsDouble());
       SmartDashboard.putNumber("Intake Current Draw", m_intakeMotor.getSupplyCurrent().getValueAsDouble());
     }
-    
+
   }
 
   public Command setStateCommand(State state) {
-    return runOnce(() -> this.state = state);
+    return startEnd(() -> setState(state),() -> setState(State.OFF));
   }
 }

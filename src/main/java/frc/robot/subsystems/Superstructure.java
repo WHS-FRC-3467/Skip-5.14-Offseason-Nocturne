@@ -4,35 +4,34 @@
 
 package frc.robot.subsystems;
 
-import java.util.function.DoubleSupplier;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-public class SimpleSubsystem extends SubsystemBase {
+public class Superstructure extends SubsystemBase {
 
   @RequiredArgsConstructor
   @Getter
   public enum State {
-    ON(() -> 1.0),
-    OFF(() -> 0.0);
+    OFF(0.0),
+    INTAKE(0.45),
+    EJECT(1.0),
+    FEED(.3),
+    OUTTAKE(-1.0);
 
-    private final DoubleSupplier outputSupplier;
-
-    private double getStateOutput() {
-      return outputSupplier.getAsDouble();
-    }
+    private final double outputSupplier;
   }
 
   @Getter
   @Setter
   private State state = State.OFF;
 
-  /** Creates a new SimpleSubsystem. */
-  public SimpleSubsystem() {
+
+  /** Creates a new StageSubsystem. */
+  public Superstructure() {
+
 
   }
 
@@ -40,14 +39,12 @@ public class SimpleSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
 
-    if (state == State.OFF) {
-      // m_intakeMotor.setControl(m_brake);
-    } else {
-      // m_intakeMotor.setControl(m_percent.withOutput(state.getStateOutput()));
-    }
+
   }
 
+
+
   public Command setStateCommand(State state) {
-    return runOnce(() -> this.state = state);
+    return startEnd(() -> setState(state),() -> setState(State.OFF));
   }
 }

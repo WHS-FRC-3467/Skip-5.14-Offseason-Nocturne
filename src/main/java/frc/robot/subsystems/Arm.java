@@ -17,6 +17,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
@@ -26,11 +27,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-public class ArmSubsystem extends SubsystemBase {
+public class Arm extends SubsystemBase {
 
   @RequiredArgsConstructor
   @Getter
-  public enum State {
+  public enum State { //TODO: Update to have horizontal as 0
     STOW(() -> 0.0),
     INTAKE(() -> 1.0),
     SUBWOOFER(() -> 1.0),
@@ -38,7 +39,7 @@ public class ArmSubsystem extends SubsystemBase {
     FEED(() -> 10.0),
     CLIMB(() -> 88.0),
     HARMONY(() -> 122.0),
-    LOOKUP(() -> 93.0);
+    LOOKUP(() -> 0.0); //TODO: Add call to robot state to get lookup angle
 
     private final DoubleSupplier outputSupplier;
 
@@ -60,7 +61,6 @@ public class ArmSubsystem extends SubsystemBase {
   private ProfiledPIDController pidController = new ProfiledPIDController(0, 0, 0,
       new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration));
   private double goalAngle;
-  private double currentAngle;
   private ArmFeedforward ff = new ArmFeedforward(0, 0, 0);
   private double output = 0;
 
@@ -69,11 +69,13 @@ public class ArmSubsystem extends SubsystemBase {
   private final NeutralOut m_brake = new NeutralOut();
 
   private DutyCycleEncoder m_encoder = new DutyCycleEncoder(0);
+
+  private Debouncer m_debounce = new Debouncer(.1);
   
 
 
   /** Creates a new ArmSubsystem. */
-  public ArmSubsystem() {
+  public Arm() {
 
     var m_configuration = new TalonFXConfiguration();
     m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -105,7 +107,11 @@ public class ArmSubsystem extends SubsystemBase {
 
   }
 
+  public boolean atGoal() {
+    return m_debounce.calculate(pidController.atGoal());
+  }
+
   public Command setStateCommand(State state) {
-    return runOnce(() -> this.state = state);
+    return startEnd(() -> setState(state),() -> setState(State.STOW));
   }
 }
