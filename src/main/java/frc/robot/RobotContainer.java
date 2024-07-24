@@ -48,7 +48,7 @@ public class RobotContainer {
                                                                              // (left)).ignoringDisable(true));
 
     drivetrain.registerTelemetry(logger::telemeterize);
-
+    //TODO: Add smart collection
     driverCtrl.leftBumper().whileTrue(arm.setStateCommand(Arm.State.INTAKE)
         .alongWith(Commands.waitUntil(arm::atGoal)
             .andThen(stage.setStateCommand(Stage.State.INTAKE)
@@ -57,10 +57,13 @@ public class RobotContainer {
 
     driverCtrl.rightBumper().whileTrue(stage.setStateCommand(Stage.State.SHOOT));
 
+    //TODO: add heading control from drivetrain
     driverCtrl.y().whileTrue(arm.setStateCommand(Arm.State.CLIMB));
     driverCtrl.b().whileTrue(arm.setStateCommand(Arm.State.AMP).alongWith(shooter.setStateCommand(Shooter.State.AMP)));
     driverCtrl.a().whileTrue(arm.setStateCommand(Arm.State.SUBWOOFER).alongWith(shooter.setStateCommand(Shooter.State.SUBWOOFER)));
-    driverCtrl.x().whileTrue(arm.setStateCommand(Arm.State.LOOKUP).alongWith(shooter.setStateCommand(Shooter.State.SHOOT)));
+    driverCtrl.x().whileTrue(arm.setStateCommand(Arm.State.LOOKUP).alongWith(shooter.setStateCommand(Shooter.State.SHOOT))); //Lookup shot
+    driverCtrl.back().whileTrue(arm.setStateCommand(Arm.State.FEED).alongWith(shooter.setStateCommand(Shooter.State.FEED)));
+    
 
   }
 
