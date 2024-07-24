@@ -176,7 +176,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     }
 
     public BooleanSupplier isArmAtState() {
-        if (MathUtil.isNear(Math.toRadians(m_ArmState.getStateOutput()), getMeasurement(), m_ArmState.getTolerance())) {
+        if (MathUtil.isNear(Math.toRadians(m_ArmState.getStateOutput()), getMeasurement(), Math.toRadians(m_ArmState.getTolerance()))) {
             isAtState = ()-> true;
             return ()-> true;
         }
