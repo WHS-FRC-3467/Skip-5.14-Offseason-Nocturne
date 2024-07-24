@@ -154,6 +154,9 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         SmartDashboard.putString("Arm state", getM_ArmState().toString());
         SmartDashboard.putNumber("Arm Angle Corrected", getMeasurement());
         SmartDashboard.putNumber("Arm Angle uncorrected", getMeasurement() + ArmConstants.k_ARM_ENCODER_OFFSET_RADIANS);
+
+        useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
+
     }
 
     @Override
