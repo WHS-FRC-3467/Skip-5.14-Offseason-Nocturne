@@ -19,9 +19,8 @@ public class Stage extends SubsystemBase {
   public enum State {
     OFF(0.0),
     INTAKE(0.45),
-    EJECT(1.0),
-    FEED(.3),
-    OUTTAKE(-1.0);
+    SHOOT(1.0),
+    UNJAM(-1.0);
 
     private final double outputSupplier;
   }

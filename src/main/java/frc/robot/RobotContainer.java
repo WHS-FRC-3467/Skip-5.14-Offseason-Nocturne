@@ -55,7 +55,12 @@ public class RobotContainer {
                 .alongWith(intake.setStateCommand(Intake.State.INTAKE))))
         .until(() -> stage.hasNote()));
 
-    driverCtrl.rightBumper().whileTrue(shooter.setStateCommand(Shooter.State.SHOOT));
+    driverCtrl.rightBumper().whileTrue(stage.setStateCommand(Stage.State.SHOOT));
+
+    driverCtrl.y().whileTrue(arm.setStateCommand(Arm.State.CLIMB));
+    driverCtrl.b().whileTrue(arm.setStateCommand(Arm.State.AMP).alongWith(shooter.setStateCommand(Shooter.State.AMP)));
+    driverCtrl.a().whileTrue(arm.setStateCommand(Arm.State.SUBWOOFER).alongWith(shooter.setStateCommand(Shooter.State.SUBWOOFER)));
+    driverCtrl.x().whileTrue(arm.setStateCommand(Arm.State.LOOKUP).alongWith(shooter.setStateCommand(Shooter.State.SHOOT)));
 
   }
 
