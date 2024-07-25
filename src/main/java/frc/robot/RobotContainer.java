@@ -34,14 +34,16 @@ public class RobotContainer {
   private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
+  public final RobotState robotState = new RobotState();
   public final Arm arm = new Arm();
   public final Intake intake = new Intake();
   public final Shooter shooter = new Shooter();
   public final Stage stage = new Stage();
+  
 
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand(drivetrain.applyRequest(() -> fieldCentric));
+    drivetrain.setDefaultCommand(drivetrain.run(() -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX())));
 
 
     drivetrain.registerTelemetry(logger::telemeterize);
@@ -56,12 +58,17 @@ public class RobotContainer {
 
     //TODO: add heading control from drivetrain
     driverCtrl.y().whileTrue(arm.setStateCommand(Arm.State.CLIMB));
+
     driverCtrl.b()
         .whileTrue(arm.setStateCommand(Arm.State.AMP)
         .alongWith(shooter.setStateCommand(Shooter.State.AMP))
-        .alongWith(drivetrain.applyRequest(() -> fieldCentricFacingAngle)));
+        .alongWith(Commands.startEnd(() -> drivetrain.setHeadingAngle(robotState.getAmpAngle()),drivetrain::clearHeadingAngle))
+        .alongWith(drivetrain.setStateCommand(Drivetrain.State.HEADING)));
+
     driverCtrl.a().whileTrue(arm.setStateCommand(Arm.State.SUBWOOFER).alongWith(shooter.setStateCommand(Shooter.State.SUBWOOFER)));
+
     driverCtrl.x().whileTrue(arm.setStateCommand(Arm.State.LOOKUP).alongWith(shooter.setStateCommand(Shooter.State.SHOOT))); //Lookup shot
+    
     driverCtrl.back().whileTrue(arm.setStateCommand(Arm.State.FEED).alongWith(shooter.setStateCommand(Shooter.State.FEED)));
     
 

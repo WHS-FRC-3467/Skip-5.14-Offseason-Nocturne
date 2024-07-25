@@ -4,8 +4,16 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+
 /** Add your docs here. */
 public class RobotState {
+    private final Rotation2d ampAngle = new Rotation2d(-Math.PI/2);
 
+    public Rotation2d getAmpAngle() {
+    return ampAngle;
+}
     
 }
+
+

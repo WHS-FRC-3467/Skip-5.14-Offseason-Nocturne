@@ -8,6 +8,8 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest.FieldCentric;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.FixedSpaceIndenter;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -18,6 +20,7 @@ import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -38,10 +41,10 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     @RequiredArgsConstructor
     @Getter
     public enum State {
-        TELEOP(() -> 0.0),
-        HEADING(() -> 0.45);
+        TELEOP,
+        HEADING,
+        SHOOTONTHEMOVE;
 
-        private final DoubleSupplier outputSupplier;
     }
 
     @Setter
@@ -64,14 +67,14 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
 
     private final SwerveRequest.ApplyChassisSpeeds AutoRequest = new SwerveRequest.ApplyChassisSpeeds();
 
-    private final SwerveRequest.FieldCentric fieldCentric = new SwerveRequest.FieldCentric()
+    private SwerveRequest.FieldCentric fieldCentric = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage) // I want field-centric driving in open loop
             .withVelocityX(controllerX * MaxSpeed)
             .withVelocityY(controllerY * MaxSpeed)
             .withRotationalRate(controllerOmega * MaxAngularRate);
 
-    private final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
+    private SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.Velocity) // I want field-centric driving in open loop
             .withVelocityX(controllerX * MaxSpeed)
@@ -92,6 +95,7 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     public Drivetrain(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
         super(driveTrainConstants, modules);
         configurePathPlanner();
+        setHeadingPID();
         if (Utils.isSimulation()) {
             startSimThread();
         }
@@ -152,19 +156,50 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
 
         switch (state) {
             case TELEOP -> {
-                this.setControl(m_requestToApply);
+                this.setControl(fieldCentric);
             }
             case HEADING -> {
-
+                this.setControl(fieldCentricFacingAngle);
             }
-            default -> {
+            case SHOOTONTHEMOVE -> {
+                this.setControl(fieldCentricFacingAngle);
             }
+            default -> {}
         }
 
+    }
+
+    private void setHeadingPID() {
+        fieldCentricFacingAngle.HeadingController.setPID(25, 10, 2);
+        fieldCentricFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
+        fieldCentricFacingAngle.HeadingController.setTolerance(Units.degreesToRadians(.5));
     }
 
     // Gets current rotation from estimated pose
     public Rotation2d getRotation() {
         return getState().Pose.getRotation();
     }
+
+    public void setControllerInput(double controllerX, double controllerY, double controllerOmega) {
+        this.controllerX = controllerX;
+        this.controllerY = controllerY;
+        this.controllerOmega = controllerOmega;
+    }
+
+    public void setHeadingAngle(Rotation2d angle) {
+        this.headingAngle = Optional.ofNullable(angle);
+    }
+
+    public void clearHeadingAngle() {
+        this.headingAngle = null;
+    }
+
+    //TODO: FIX
+    public boolean atHeadingAngle() {
+        return false;
+    }
+
+    public Command setStateCommand(State state) {
+        return startEnd(() -> setState(state),() -> setState(State.TELEOP));
+      }
 }
