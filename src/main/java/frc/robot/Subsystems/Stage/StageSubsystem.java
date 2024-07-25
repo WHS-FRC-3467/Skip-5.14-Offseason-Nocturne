@@ -22,16 +22,17 @@ import frc.robot.Util.ThriftyNova;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+
 public class StageSubsystem extends SubsystemBase {
 
     @RequiredArgsConstructor
     @Getter
-    public enum State{
+    public enum State {
 
-        INTAKE (() -> StageConstants.k_STAGE_VELOCITY),
-        SHOOTING (() -> StageConstants.kFeedToShooterSpeed),
-        AMP (() -> StageConstants.kFeedToAmpSpeed),
-        REV (() -> StageConstants.k_STAGE_REV_VELOCITY),
+        INTAKE(() -> StageConstants.k_STAGE_VELOCITY),
+        SHOOTING(() -> StageConstants.kFeedToShooterSpeed),
+        AMP(() -> StageConstants.kFeedToAmpSpeed),
+        REV(() -> StageConstants.k_STAGE_REV_VELOCITY),
         OFF(() -> 0.0);
 
         private final DoubleSupplier outputSupplier;
@@ -40,14 +41,14 @@ public class StageSubsystem extends SubsystemBase {
             return outputSupplier.getAsDouble();
         }
     }
-    
+
     @Getter
     @Setter
     private State state = State.OFF;
 
     // To get a boolean supplier for the beam break to use in commands
     // False if no note in stage. Should be set to true if note is in stage.
-    public BooleanSupplier beambreakSupplier = ()-> false;
+    public BooleanSupplier beambreakSupplier = () -> false;
 
     // Initialize devices
     ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.k_STAGE_CAN_ID);
@@ -56,7 +57,7 @@ public class StageSubsystem extends SubsystemBase {
     /** Creates a new StageSubsystem. */
     public StageSubsystem() {
 
-        thrifty_nova.setBrakeMode(false);
+        thrifty_nova.setBrakeMode(true);
         thrifty_nova.setInverted(false);
 
     }
@@ -64,12 +65,14 @@ public class StageSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // Change state of beambreak boolean supplier as necessary
-        // If beamstate is open and there is a note in the beambreak then change the boolean supplier
+        // If beamstate is open and there is a note in the beambreak then change the
+        // boolean supplier
         if ((!beambreakSupplier.getAsBoolean()) && (!m_stageBeamBreak.get())) {
-            beambreakSupplier = ()-> true; // If note in stage, close beamstate
-        } else if ((beambreakSupplier.getAsBoolean()) && (m_stageBeamBreak.get())){
-            // Vice versa - if boolean supplier says there is a note in stage but there isn't, then switch boolean supplier
-            beambreakSupplier = ()-> false; // If note not in stage anymore, open beamstate
+            beambreakSupplier = () -> true; // If note in stage, close beamstate
+        } else if ((beambreakSupplier.getAsBoolean()) && (m_stageBeamBreak.get())) {
+            // Vice versa - if boolean supplier says there is a note in stage but there
+            // isn't, then switch boolean supplier
+            beambreakSupplier = () -> false; // If note not in stage anymore, open beamstate
         }
 
         SmartDashboard.putNumber("Stage Setpoint Velocity", state.getStateOutput());
@@ -82,13 +85,15 @@ public class StageSubsystem extends SubsystemBase {
 
     /**
      * 
-     * @return whether the difference between set speed and actual speed of stage is within tolerance
+     * @return whether the difference between set speed and actual speed of stage is
+     *         within tolerance
      */
 
     public boolean isAtSpeed() {
-        return MathUtil.isNear(state.getStateOutput(), thrifty_nova.getVelocity(), StageConstants.k_STAGE_VELOCITY_TOLERANCE);
+        return MathUtil.isNear(state.getStateOutput(), thrifty_nova.getVelocity(),
+                StageConstants.k_STAGE_VELOCITY_TOLERANCE);
     }
-    
+
     public boolean isNoteInStage() {
         return !m_stageBeamBreak.get();
     }
@@ -100,14 +105,17 @@ public class StageSubsystem extends SubsystemBase {
     /**
      * Run Stage until note is detected, which ends the command
      *
-     * @return a command setting the stage state to INTAKE until a note is in stage, then it will set state to OFF.
+     * @return a command setting the stage state to INTAKE until a note is in stage,
+     *         then it will set state to OFF.
      */
     public Command runStageUntilNoteCommand() {
-        return new RunCommand(()-> setStateCommand(State.INTAKE)).until(beambreakSupplier).andThen(()-> setStateCommand(State.OFF));
+        return new RunCommand(() -> setStateCommand(State.INTAKE)).until(beambreakSupplier)
+                .andThen(() -> setStateCommand(State.OFF));
     }
-    
+
     /**
-     * Example command factory method. Periodic tells the stage to run according to the state
+     * Example command factory method. Periodic tells the stage to run according to
+     * the state
      *
      * @return a command setting the stage state to the argument
      */

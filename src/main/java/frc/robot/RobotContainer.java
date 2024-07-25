@@ -34,7 +34,8 @@ import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem.ShooterState;
 import frc.robot.Subsystems.Stage.StageSubsystem;
-// import frc.robot.Subsystems.LED.LEDSubsystem;
+import frc.robot.Subsystems.Superstructure;
+import frc.robot.Util.RobotState;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -44,6 +45,8 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Vision.Limelight;
 import frc.robot.generated.TunerConstants;
+import lombok.Getter;
+import lombok.Setter;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
@@ -196,7 +199,7 @@ public class RobotContainer {
 
         // Bindings that would be used in a match
         // Schedule `runShooterCommand` when the Xbox controller's B button is pressed,cancelling on release.
-        m_driverController.b().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.REVVING));
+        m_driverController.b().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.SHOOT));
         // A button: stop shooter
         m_driverController.a().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.STOP));
         // Manual Intake

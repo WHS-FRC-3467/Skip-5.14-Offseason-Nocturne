@@ -103,8 +103,8 @@ public final class Constants {
         public static final double k_SHOOTER_VELOCITY_TOLERANCE = 5;
 
         public static final double kSVolts = 0.1;
-        public static final double kVVoltSecondsPerRotation = 0.12;
-        public static final double kP = 0.11;
+        public static final double kVVoltSecondsPerRotation = 0.125;
+        public static final double kP = 0.03;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
     }
