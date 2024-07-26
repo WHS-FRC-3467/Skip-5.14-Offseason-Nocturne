@@ -9,7 +9,9 @@ import com.ctre.phoenix6.Utils;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
@@ -39,7 +41,9 @@ public class RobotContainer {
 
 
   private void configureBindings() {
-    drivetrain.setDefaultCommand(drivetrain.run(() -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX())));
+    SmartDashboard.putData(CommandScheduler.getInstance());
+    drivetrain.setDefaultCommand(drivetrain.run(() -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX()))
+    .withName("Pass joystick to drivetrain"));
 
 
     drivetrain.registerTelemetry(logger::telemeterize);

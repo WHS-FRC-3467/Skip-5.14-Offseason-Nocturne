@@ -113,7 +113,7 @@ public class Arm extends SubsystemBase {
   }
 
   public Command setStateCommand(State state) {
-    return startEnd(() -> setState(state),() -> setState(State.STOW));
+    return startEnd(() -> setState(state),() -> setState(State.STOW)).withName("Set Arm State: " + state.toString());
   }
 
   private void displayInfo(boolean debug) {

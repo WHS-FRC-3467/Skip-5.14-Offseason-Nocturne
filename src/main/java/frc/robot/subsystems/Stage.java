@@ -20,7 +20,7 @@ public class Stage extends SubsystemBase {
   @Getter
   public enum State {
     OFF(0.0),
-    INTAKE(0.45),
+    INTAKE(0.25),
     SHOOT(1.0),
     UNJAM(-1.0);
 
@@ -55,7 +55,7 @@ public class Stage extends SubsystemBase {
   }
 
   public boolean hasNote() {
-    return m_stageBeamBreak.get();
+    return !m_stageBeamBreak.get();
   }
 
   public Command setStateCommand(State state) {

@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import java.util.Optional;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;

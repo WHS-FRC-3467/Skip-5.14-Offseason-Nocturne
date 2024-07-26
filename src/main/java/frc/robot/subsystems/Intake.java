@@ -22,7 +22,7 @@ public class Intake extends SubsystemBase {
   @RequiredArgsConstructor
   @Getter
   public enum State {
-    INTAKE(0.7),
+    INTAKE(0.5),
     EJECTING(-0.3),
     OFF(0.0);
 
