@@ -5,8 +5,10 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.StageConstants;
 import frc.robot.Util.ThriftyNova;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +31,8 @@ public class Stage extends SubsystemBase {
   @Setter
   private State state = State.OFF;
 
-  ThriftyNova thrifty_nova = new ThriftyNova(0);
-  DigitalInput m_stageBeamBreak = new DigitalInput(0);
+  ThriftyNova thrifty_nova = new ThriftyNova(StageConstants.ID_StageMotor);
+  DigitalInput m_stageBeamBreak = new DigitalInput(StageConstants.ID_StageBeamBreak);
 
   /** Creates a new StageSubsystem. */
   public Stage() {
@@ -48,6 +50,8 @@ public class Stage extends SubsystemBase {
     } else {
       thrifty_nova.setPercentOutput(state.getOutputSupplier());
     }
+
+    displayInfo(true);
   }
 
   public boolean hasNote() {
@@ -55,6 +59,17 @@ public class Stage extends SubsystemBase {
   }
 
   public Command setStateCommand(State state) {
-    return startEnd(() -> setState(state),() -> setState(State.OFF));
+    return startEnd(() -> setState(state), () -> setState(State.OFF));
+  }
+
+  private void displayInfo(boolean debug) {
+    if (debug) {
+      SmartDashboard.putString("Stage State ", state.toString());
+      SmartDashboard.putNumber("Stage Setpoint ", state.getOutputSupplier());
+      SmartDashboard.putNumber("Stage Output ", thrifty_nova.getVelocity());
+      SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw());
+      SmartDashboard.putBoolean("Stage has Note?", hasNote());
+    }
+
   }
 }

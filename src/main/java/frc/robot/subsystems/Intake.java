@@ -4,73 +4,68 @@
 
 package frc.robot.subsystems;
 
-import java.util.function.DoubleSupplier;
-
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.IntakeConstants;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+
 
 public class Intake extends SubsystemBase {
 
   @RequiredArgsConstructor
   @Getter
   public enum State {
-    INTAKE(() -> 0.7),
-    EJECTING(() -> -0.3),
-    OFF(() -> 0.0);
+    INTAKE(0.7),
+    EJECTING(-0.3),
+    OFF(0.0);
 
-    private final DoubleSupplier outputSupplier;
+    private final double outputSupplier;
 
-    private double getStateOutput() {
-      return outputSupplier.getAsDouble();
-    }
   }
 
   @Getter
   @Setter
   private State state = State.OFF;
 
-  TalonFX m_intakeMotor = new TalonFX(0);
+  TalonFX m_intakeMotor = new TalonFX(IntakeConstants.ID_IntakeMotor);
+  TalonFX m_intakeFollowerMotor = new TalonFX(IntakeConstants.ID_IntakeFollower);
   private final DutyCycleOut m_percent = new DutyCycleOut(0);
   private final NeutralOut m_neutralOutput = new NeutralOut();
 
   /** Creates a new IntakeSubsystem. */
   public Intake() {
-    var m_configuration = new TalonFXConfiguration();
-    m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    m_configuration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    m_configuration.Voltage.PeakForwardVoltage = 12.0;
-    m_configuration.Voltage.PeakReverseVoltage = -12.0;
-    m_intakeMotor.getConfigurator().apply(m_configuration);
+    
+    m_intakeMotor.getConfigurator().apply(IntakeConstants.motorConfig());
+    m_intakeFollowerMotor.getConfigurator().apply(IntakeConstants.motorConfig());
+    m_intakeFollowerMotor.setControl(new Follower(IntakeConstants.ID_IntakeMotor, false));
 
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    displayInfo(true);
+
     if (state == State.OFF) {
       m_intakeMotor.setControl(m_neutralOutput);
     } else {
-      m_intakeMotor.setControl(m_percent.withOutput(state.getStateOutput()));
+      m_intakeMotor.setControl(m_percent.withOutput(state.getOutputSupplier()));
     }
+
+    displayInfo(true);
 
   }
 
   private void displayInfo(boolean debug) {
     if (debug) {
       SmartDashboard.putString("Intake State ", state.toString());
-      SmartDashboard.putNumber("Intake Setpoint ", state.getStateOutput());
+      SmartDashboard.putNumber("Intake Setpoint ", state.getOutputSupplier());
       SmartDashboard.putNumber("Intake Output ", m_intakeMotor.getMotorVoltage().getValueAsDouble());
       SmartDashboard.putNumber("Intake Current Draw", m_intakeMotor.getSupplyCurrent().getValueAsDouble());
     }

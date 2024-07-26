@@ -4,16 +4,14 @@
 
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ShooterConstants;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -38,29 +36,18 @@ public class Shooter extends SubsystemBase {
   @Setter
   private State state = State.OFF;
 
-  private double tolerance = 2;
+  private double tolerance = 2; //TODO: Confirm RPM
 
-  TalonFX m_leftShooterMotor = new TalonFX(0);
-  TalonFX m_rightShooterMotor = new TalonFX(0);
+  TalonFX m_leftShooterMotor = new TalonFX(ShooterConstants.ID_ShooterLeft);
+  TalonFX m_rightShooterMotor = new TalonFX(ShooterConstants.ID_ShooterRight);
   private final VelocityVoltage m_voltageVelocity = new VelocityVoltage(0.0);
   private final NeutralOut m_neutralOut = new NeutralOut();
 
   /** Creates a new SimpleSubsystem. */
   public Shooter() {
-    var motorConfig = new TalonFXConfiguration();
 
-    /* set motors to Coast */
-    motorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    motorConfig.Slot0.kP = .03;
-    motorConfig.Slot0.kI = 0;
-    motorConfig.Slot0.kD = 0;
-    motorConfig.Slot0.kV = .125;
-
-    /* Apply configs */
-    motorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-    m_leftShooterMotor.getConfigurator().apply(motorConfig);
-    motorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    m_rightShooterMotor.getConfigurator().apply(motorConfig);
+    m_leftShooterMotor.getConfigurator().apply(ShooterConstants.motorConfig());
+    m_rightShooterMotor.getConfigurator().apply(ShooterConstants.motor2Config());
 
   }
 
@@ -70,10 +57,13 @@ public class Shooter extends SubsystemBase {
 
     if (state == State.OFF) {
       m_leftShooterMotor.setControl(m_neutralOut);
+      m_rightShooterMotor.setControl(m_neutralOut);
     } else {
       m_leftShooterMotor.setControl(m_voltageVelocity.withVelocity(state.getLeftVelocity()));
-      m_rightShooterMotor.setControl(m_voltageVelocity.withVelocity(state.getLeftVelocity()));
+      m_rightShooterMotor.setControl(m_voltageVelocity.withVelocity(state.getRightVelocity()));
     }
+
+    displayInfo(true);
   }
 
   public boolean atGoal() {
@@ -84,5 +74,18 @@ public class Shooter extends SubsystemBase {
 
   public Command setStateCommand(State state) {
     return startEnd(() -> setState(state),() -> setState(State.OFF));
+  }
+
+  private void displayInfo(boolean debug) {
+    if (debug) {
+      SmartDashboard.putString("Shooter State ", state.toString());
+      SmartDashboard.putNumber("Shooter Left Setpoint ", state.getLeftVelocity());
+      SmartDashboard.putNumber("Shooter Right Setpoint ", state.getRightVelocity());
+      SmartDashboard.putNumber("Shooter Left Speed", m_leftShooterMotor.getVelocity().getValueAsDouble());
+      SmartDashboard.putNumber("Shooter Right Speed", m_rightShooterMotor.getVelocity().getValueAsDouble());
+      SmartDashboard.putBoolean("Shooter at Goal?", atGoal());
+      SmartDashboard.putNumber("Intake Current Draw", m_leftShooterMotor.getSupplyCurrent().getValueAsDouble());
+    }
+
   }
 }

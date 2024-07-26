@@ -1,15 +1,13 @@
 package frc.robot.subsystems;
 
 import java.util.Optional;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest.FieldCentric;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.FixedSpaceIndenter;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -68,34 +66,26 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     private final SwerveRequest.ApplyChassisSpeeds AutoRequest = new SwerveRequest.ApplyChassisSpeeds();
 
     private SwerveRequest.FieldCentric fieldCentric = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage) // I want field-centric driving in open loop
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) 
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage) 
             .withVelocityX(controllerX * MaxSpeed)
             .withVelocityY(controllerY * MaxSpeed)
             .withRotationalRate(controllerOmega * MaxAngularRate);
 
     private SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.Velocity) // I want field-centric driving in open loop
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) 
+            .withDriveRequestType(DriveRequestType.Velocity) 
             .withVelocityX(controllerX * MaxSpeed)
             .withVelocityY(controllerY * MaxSpeed)
-            .withTargetDirection(headingAngle.isPresent() ? headingAngle.get() : getRotation());
+            .withTargetDirection(new Rotation2d());
 
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-
-/*     public Drivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
-            SwerveModuleConstants... modules) {
-        super(driveTrainConstants, OdometryUpdateFrequency, modules);
-        configurePathPlanner();
-        if (Utils.isSimulation()) {
-            startSimThread();
-        }
-    } */
+    //private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
     public Drivetrain(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
         super(driveTrainConstants, modules);
         configurePathPlanner();
         setHeadingPID();
+        setSwerveDriveCustomCurrentLimits();
         if (Utils.isSimulation()) {
             startSimThread();
         }
@@ -152,6 +142,12 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     }
 
     @Override
+    public void simulationPeriodic() {
+        /* Assume 20ms update rate, get battery voltage from WPILib */
+        updateSimState(0.02, RobotController.getBatteryVoltage());
+    }
+
+    @Override
     public void periodic() {
 
         switch (state) {
@@ -176,9 +172,9 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     }
 
     // Gets current rotation from estimated pose
-    public Rotation2d getRotation() {
+/*     public Rotation2d getRotation() {
         return getState().Pose.getRotation();
-    }
+    } */
 
     public void setControllerInput(double controllerX, double controllerY, double controllerOmega) {
         this.controllerX = controllerX;
@@ -194,12 +190,41 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
         this.headingAngle = null;
     }
 
-    //TODO: FIX
     public boolean atHeadingAngle() {
-        return false;
+        return fieldCentricFacingAngle.HeadingController.atSetpoint();
     }
 
     public Command setStateCommand(State state) {
         return startEnd(() -> setState(state),() -> setState(State.TELEOP));
+      }
+
+
+      public void setSwerveDriveCustomCurrentLimits() {
+          // Create a current configuration to use for the drive motor of each swerve
+          // module.
+          var customCurrentLimitConfigs = new CurrentLimitsConfigs();
+
+          // Iterate through each module.
+          for (var module : Modules) {
+              // Get the Configurator for the current drive motor.
+              var currentConfigurator = module.getDriveMotor().getConfigurator();
+
+              // Refresh the current configuration, since the stator current limit has already
+              // been set.
+              currentConfigurator.refresh(customCurrentLimitConfigs);
+
+              // Set all of the parameters related to the supply current. The values should
+              // come from Constants.
+              customCurrentLimitConfigs.SupplyCurrentLimit = 30;
+              customCurrentLimitConfigs.SupplyCurrentThreshold = 90;
+              customCurrentLimitConfigs.SupplyTimeThreshold = .01;
+              customCurrentLimitConfigs.SupplyCurrentLimitEnable = true;
+
+              customCurrentLimitConfigs.StatorCurrentLimit = 80;
+              customCurrentLimitConfigs.StatorCurrentLimitEnable = true;
+
+              // Apply the new current limit configuration.
+              currentConfigurator.apply(customCurrentLimitConfigs);
+          }
       }
 }
