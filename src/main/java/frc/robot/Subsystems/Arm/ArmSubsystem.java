@@ -40,6 +40,9 @@ import lombok.Setter;
  */
 public class ArmSubsystem extends ProfiledPIDSubsystem {
 
+    /** Arm subsystem singleton. For superstructure. */
+    private static ArmSubsystem instance = null;
+
     TalonFX m_armLead = new TalonFX(CanConstants.ID_ArmLeader);
     TalonFX m_armFollow = new TalonFX(CanConstants.ID_ArmFollower);
     CANcoder m_armEncoder  = new CANcoder(DIOConstants.k_ARM_ENCODER_ID);
@@ -87,6 +90,21 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     public BooleanSupplier isAtState = ()-> false;
 
     private final NeutralOut m_neutral = new NeutralOut();
+
+    // For superstructure
+    /**
+    * Returns the arm subsystem instance.
+    *
+    * @return the arm subsystem instance.
+    */
+    public static ArmSubsystem getInstance() {
+        if (instance == null) {
+        instance = new ArmSubsystem();
+        }
+
+        return instance;
+    }
+
 
     /*
      * Constructor

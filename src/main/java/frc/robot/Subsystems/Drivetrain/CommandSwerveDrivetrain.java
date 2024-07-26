@@ -34,6 +34,10 @@ import static edu.wpi.first.units.Units.*;
  * so it can be used in command-based projects easily.
  */
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
+    // For superstructure
+    /** Swerve subsystem singleton. */
+    private static CommandSwerveDrivetrain instance = null;
+    
     private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
@@ -81,6 +85,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 },
                 this); // Subsystem for requirements
     }
+
+    /**
+    * Returns the swerve subsystem instance. For superstructure
+    *
+    * @return the swerve subsystem instance.
+    */
+    public static CommandSwerveDrivetrain getInstance() {
+        if (instance == null) {
+            instance = TunerConstants.DriveTrain;
+        }
+
+        return instance;
+   }
 
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
         return run(() -> this.setControl(requestSupplier.get()));

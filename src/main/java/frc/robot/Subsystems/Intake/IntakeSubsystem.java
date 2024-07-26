@@ -22,12 +22,16 @@ import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Subsystems.Arm.ArmSubsystem;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import java.util.function.DoubleSupplier;
 
 public class IntakeSubsystem extends SubsystemBase {
+
+    /** Intake subsystem singleton. For superstructure. */
+    private static IntakeSubsystem instance = null;
 
     @RequiredArgsConstructor
     @Getter
@@ -51,6 +55,20 @@ public class IntakeSubsystem extends SubsystemBase {
     // Initalize Motors and Beam Break
     TalonFX m_intakeLead = new TalonFX(CanConstants.k_INTAKE_LEFT_CAN_ID);
     TalonFX m_intakeFollow = new TalonFX(CanConstants.k_INTAKE_RIGHT_CAN_ID);
+
+    // For superstructure
+    /**
+    * Returns the intake subsystem instance.
+    *
+    * @return the intake subsystem instance.
+    */
+    public static IntakeSubsystem getInstance() {
+        if (instance == null) {
+        instance = new IntakeSubsystem();
+        }
+
+        return instance;
+    }
 
     /** Creates a new IntakeSubsystem. */
     public IntakeSubsystem() {

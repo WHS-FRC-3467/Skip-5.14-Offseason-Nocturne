@@ -17,6 +17,8 @@ import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.StageConstants;
+import frc.robot.Subsystems.Intake.IntakeSubsystem;
+import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 // import frc.robot.sim.PhysicsSim;
 import frc.robot.Util.ThriftyNova;
 import lombok.Getter;
@@ -24,6 +26,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 public class StageSubsystem extends SubsystemBase {
+
+    /** Stage subsystem singleton. For superstructure. */
+    private static StageSubsystem instance = null;
 
     @RequiredArgsConstructor
     @Getter
@@ -53,6 +58,20 @@ public class StageSubsystem extends SubsystemBase {
     // Initialize devices
     ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.k_STAGE_CAN_ID);
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.k_INTAKE_BEAM_BREAK);
+
+    // For superstructure
+    /**
+    * Returns the stage subsystem instance.
+    *
+    * @return the stage subsystem instance.
+    */
+    public static StageSubsystem getInstance() {
+        if (instance == null) {
+        instance = new StageSubsystem();
+        }
+
+        return instance;
+    }
 
     /** Creates a new StageSubsystem. */
     public StageSubsystem() {

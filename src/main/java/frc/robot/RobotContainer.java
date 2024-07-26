@@ -20,6 +20,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.Odometry;
 // import edu.wpi.first.math.MathUtil;
 // import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -59,6 +60,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+    
+    /** Robot container singleton. */
+    private static RobotContainer instance = null;
+
     // Declare the auto chooser
     private final SendableChooser<Command> autoChooser;
     // From CTRE swerve example
@@ -70,12 +75,13 @@ public class RobotContainer {
     private double AngularRate = MaxAngularRate; // This will be updated when turtle and reset to MaxAngularRate
 
     // The robot's subsystems and commands are defined here...
-    public final CommandSwerveDrivetrain m_Drivetrain = TunerConstants.DriveTrain;
-    private final IntakeSubsystem m_IntakeSubsystem = new IntakeSubsystem();
-    private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
-    private final StageSubsystem m_StageSubsystem = new StageSubsystem();
-    private final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
+    public final CommandSwerveDrivetrain m_Drivetrain;
+    private final IntakeSubsystem m_IntakeSubsystem;
+    private final ShooterSubsystem m_ShooterSubsystem;
+    private final StageSubsystem m_StageSubsystem;
+    private final ArmSubsystem m_ArmSubsystem;
     private final Limelight m_LimeLight = new Limelight("ll");
+    private final Superstructure m_Superstructure;
     // Instantiate driver and operator controllers
     CommandXboxPS5Controller m_driverController = new CommandXboxPS5Controller(OperatorConstants.kDriverControllerPort);
     CommandXboxPS5Controller m_operatorController = new CommandXboxPS5Controller(OperatorConstants.kOperatorControllerPort);
@@ -104,6 +110,14 @@ public class RobotContainer {
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
+        
+        m_ArmSubsystem = ArmSubsystem.getInstance();
+        m_StageSubsystem = StageSubsystem.getInstance();
+        m_IntakeSubsystem = IntakeSubsystem.getInstance();
+        m_ShooterSubsystem = ShooterSubsystem.getInstance();
+        m_Superstructure = Superstructure.getInstance();
+        m_Drivetrain = CommandSwerveDrivetrain.getInstance();
+        
         // Detect if controllers are missing / Stop multiple warnings
         DriverStation.silenceJoystickConnectionWarning(true);
         
@@ -132,6 +146,19 @@ public class RobotContainer {
         m_StageSubsystem.setDefaultCommand(m_StageSubsystem.setStateCommand(StageSubsystem.State.OFF));
         // Configure the trigger bindings
         configureBindings();
+    }
+
+    /**
+    * Returns the robot container.
+    *
+    * @return the robot container.
+    */
+    public static RobotContainer getInstance() {
+        if (instance == null) {
+            instance = new RobotContainer();
+        }
+
+        return instance;
     }
 
     /**

@@ -27,7 +27,7 @@ import lombok.Setter;
  */
 
     public class RobotState {
-        // TODO: Integrate Shooter and Arm state/setpoint into combined setpoints
+        
         IntakeSubsystem.State INTAKE;
         StageSubsystem.State STAGE;
         ArmSubsystem.ArmState ARM;
@@ -39,5 +39,21 @@ import lombok.Setter;
             this.ARM = armstate;
             this.SHOOTER = shooterstate;
 
+        }
+
+        public IntakeSubsystem.State getIntakeState() {
+            return this.INTAKE;
+        }
+
+        public StageSubsystem.State getStageState() {
+            return this.STAGE;
+        }
+
+        public ArmSubsystem.ArmState getArmState() {
+            return this.ARM;
+        }
+
+        public ShooterSubsystem.ShooterState getShooterState() {
+            return this.SHOOTER;
         }
     }

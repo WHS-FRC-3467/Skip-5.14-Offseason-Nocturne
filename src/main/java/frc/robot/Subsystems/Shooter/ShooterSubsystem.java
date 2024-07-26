@@ -22,6 +22,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 //import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Util.RobotState;
 import frc.robot.Util.TunableNumber;
 //import frc.robot.sim.PhysicsSim;
@@ -30,6 +31,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 public class ShooterSubsystem extends SubsystemBase {
+
+    /** Shooter subsystem singleton. For superstructure. */
+    private static ShooterSubsystem instance = null;
 
     /* Declare ShooterState Variables - This enum is used to keep track of what the shooter is doing
     *   Numbers should be in rotations per second. Left supplier corresponds to left shooter motor, right supplier to right shooter motor
@@ -69,6 +73,20 @@ public class ShooterSubsystem extends SubsystemBase {
     NeutralOut m_neutralOut = new NeutralOut();
 
     final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
+
+    // For superstructure
+    /**
+    * Returns the shooter subsystem instance.
+    *
+    * @return the shooter subsystem instance.
+    */
+    public static ShooterSubsystem getInstance() {
+        if (instance == null) {
+        instance = new ShooterSubsystem();
+        }
+
+        return instance;
+    }
 
     public ShooterSubsystem() {
         
