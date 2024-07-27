@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.Robot;
 import frc.robot.generated.TunerConstants;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -68,17 +69,11 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
 
     private SwerveRequest.FieldCentric fieldCentric = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) 
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage) 
-            .withVelocityX(controllerX * MaxSpeed)
-            .withVelocityY(controllerY * MaxSpeed)
-            .withRotationalRate(controllerOmega * MaxAngularRate);
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) 
-            .withDriveRequestType(DriveRequestType.Velocity) 
-            .withVelocityX(controllerX * MaxSpeed)
-            .withVelocityY(controllerY * MaxSpeed)
-            .withTargetDirection(new Rotation2d());
+            .withDriveRequestType(DriveRequestType.Velocity);
 
     //private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
@@ -151,23 +146,24 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     @Override
     public void periodic() {
 
-        switch (state) {
+         switch (state) {
             case TELEOP -> {
-                this.setControl(fieldCentric);
+                this.setControl(fieldCentric.withVelocityX(controllerX * MaxSpeed).withVelocityY(controllerY * MaxSpeed).withRotationalRate(controllerOmega * MaxAngularRate));
             }
             case HEADING -> {
-                this.setControl(fieldCentricFacingAngle);
+                this.setControl(fieldCentricFacingAngle.withVelocityX(controllerX * MaxSpeed).withVelocityY(controllerY * MaxSpeed).withTargetDirection(headingAngle.get()));
             }
             case SHOOTONTHEMOVE -> {
                 this.setControl(fieldCentricFacingAngle);
             }
             default -> {}
-        }
+        } 
 
     }
 
     private void setHeadingPID() {
-        fieldCentricFacingAngle.HeadingController.setPID(25, 10, 2);
+        if (Robot.isReal()) {fieldCentricFacingAngle.HeadingController.setPID(25, 10, 2);} 
+        else {fieldCentricFacingAngle.HeadingController.setPID(3, 0, 0);}
         fieldCentricFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         fieldCentricFacingAngle.HeadingController.setTolerance(Units.degreesToRadians(.5));
     }
@@ -184,10 +180,12 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     }
 
     public void setHeadingAngle(Rotation2d angle) {
+        this.state = State.HEADING;
         this.headingAngle = Optional.ofNullable(angle);
     }
 
     public void clearHeadingAngle() {
+        this.state = State.TELEOP;
         this.headingAngle = null;
     }
 

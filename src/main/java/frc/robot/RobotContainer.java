@@ -5,6 +5,8 @@
 package frc.robot;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -37,16 +39,17 @@ public class RobotContainer {
   public final Intake intake = new Intake();
   public final Shooter shooter = new Shooter();
   public final Stage stage = new Stage();
+
   
-
-
+  
   private void configureBindings() {
     SmartDashboard.putData(CommandScheduler.getInstance());
-    drivetrain.setDefaultCommand(drivetrain.run(() -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX()))
-    .withName("Pass joystick to drivetrain"));
 
+    drivetrain.setDefaultCommand(drivetrain.run(
+        () -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX())));
 
     drivetrain.registerTelemetry(logger::telemeterize);
+    
     //TODO: Add smart collection
     driverCtrl.leftBumper().whileTrue(arm.setStateCommand(Arm.State.INTAKE)
         .alongWith(Commands.waitUntil(arm::atGoal)
@@ -61,8 +64,7 @@ public class RobotContainer {
     driverCtrl.b()
         .whileTrue(arm.setStateCommand(Arm.State.AMP)
         .alongWith(shooter.setStateCommand(Shooter.State.AMP))
-        .alongWith(Commands.startEnd(() -> drivetrain.setHeadingAngle(robotState.getAmpAngle()),drivetrain::clearHeadingAngle))
-        .alongWith(drivetrain.setStateCommand(Drivetrain.State.HEADING)));
+        .alongWith(Commands.startEnd(() -> drivetrain.setHeadingAngle(robotState.getAmpAngle()),drivetrain::clearHeadingAngle)));
 
     driverCtrl.a().whileTrue(arm.setStateCommand(Arm.State.SUBWOOFER).alongWith(shooter.setStateCommand(Shooter.State.SUBWOOFER)));
 
