@@ -13,9 +13,11 @@ Nocturne 2024 Offseason Bot
 - Driver Controls
 - Limelight
 - Photonvision and April Tag Location
+- RobotState - Setpoints enumeration (that combines Arm + Shooter state machines)
+- Superstructure
 
 # Testing/Ready For Testing
-- Intaking (Intake + Stage Subsystem)
+- Intaking (Intake + Stage Subsystem) and Eject
 - Basic arm functionality
 - Drivetrain
 - Basic shooter functionality
@@ -25,11 +27,28 @@ Nocturne 2024 Offseason Bot
 
 # To be Started
 - TunableNumber constants for tuning shooter Velocity and Arm PID via the Shuffleboard.
-- Setpoints enumeration (that combines Arm + Shooter state machines)
 - Note Following
 - Trap Subsystem
 - Look and Shoot
 - Shoot & Move
+- Pathplanner Autos
+
+# Driver Controls
+- The two joysticks: Drive robot
+- Hold Left Bumper: Turtle Mode (Drivetrain) for fine adjustments
+- Press B: Start Shooter
+- Press A: Stop Shooter
+- Press X: Manual Intake
+- Press Y: Manual Shoot Note (stage)
+- Hold Left Trigger: Regular Intake
+- Hold Right Trigger: Eject Note (manual outtake)
+
+# Operator Controls
+- Press DPad Left: Shooter + Arm to Podium position
+- Press DPad Up: Shooter + Arm to AMP position
+- Press DPad Right: Arm to Harmony position
+- Press DPad Down: Arm to Subwoofer position
+- Drivetrain testing (see RobotContainer)
 
 # CTRE Swerve Example
 

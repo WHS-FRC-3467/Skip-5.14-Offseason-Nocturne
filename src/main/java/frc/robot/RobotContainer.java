@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Arm.ArmSubsystem.ArmState;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
@@ -205,7 +206,7 @@ public class RobotContainer {
         }
             m_Drivetrain.registerTelemetry(logger::telemeterize);
 
-        Trigger speedPick = new Trigger(() -> lastSpeed != speedChooser.getSelected());
+        final Trigger speedPick = new Trigger(() -> lastSpeed != speedChooser.getSelected());
         speedPick.onTrue(runOnce(() -> newSpeed()));
 
         // Testing uses operator controller
@@ -226,18 +227,31 @@ public class RobotContainer {
 
         // Bindings that would be used in a match
         // Schedule `runShooterCommand` when the Xbox controller's B button is pressed,cancelling on release.
-        m_driverController.b().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.SHOOT));
+        m_driverController.b().onTrue(m_Superstructure.startShooterCommand());
         // A button: stop shooter
-        m_driverController.a().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.STOP));
+        m_driverController.a().onTrue(m_Superstructure.stopShooterCommand());
         // Manual Intake
-        m_driverController.x().onTrue(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD));
+        m_driverController.x().onTrue(m_Superstructure.manualIntakeCommand());
+        // Manual shoot note (run stage)
+        m_driverController.y().onTrue(m_Superstructure.shootCommand());
         // Intake Note Command
-        m_driverController.leftTrigger().whileTrue(m_ArmSubsystem.setStateCommand(ArmState.STOWED)
-            .until(m_ArmSubsystem.isArmAtState())
-            .andThen(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD), m_StageSubsystem.runStageUntilNoteCommand())));
+        m_driverController.leftTrigger().whileTrue(m_Superstructure.intakeCommand());
         // Expel note - Manual outtake
-        m_driverController.rightTrigger().whileTrue(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.REV), m_StageSubsystem.setStateCommand(StageSubsystem.State.REV)));
-        // Once the button is lifted, the intake should go back to its default command
+        m_driverController.rightTrigger().whileTrue(m_Superstructure.ejectCommand());
+        
+        // Operator Controls
+            // Operator: DPad Left: Arm to Podium position (when pressed)
+        m_operatorController.povLeft().onTrue(m_Superstructure.armToPodiumCommand());
+
+        // Operator: DPad Up: Shooter/Arm to AMP Position & Speed (when pressed)
+        m_operatorController.povUp().onTrue(m_Superstructure.armToAmpCommand());
+
+        // Operator: DPad Right: Arm to Harmony Position (when pressed)
+        m_operatorController.povRight().onTrue(m_Superstructure.armToHarmonyCommand());
+
+        // Operator: DPad Down: Arm to Subwoofer Position (when pressed)
+        m_operatorController.povDown().onTrue(m_Superstructure.armToSubCommand());
+
     }
 
     /**

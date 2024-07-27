@@ -133,6 +133,17 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     /**
+     * Run Stage until note is NOT detected, which ends the command
+     *
+     * @return a command setting the stage state to SHOOTING until a note is NOT in stage,
+     *         then it will set state to OFF.
+     */
+    public Command runStageUntilNoNoteCommand() {
+        return new RunCommand(() -> setStateCommand(State.SHOOTING)).until(()-> !beambreakSupplier.getAsBoolean())
+                .andThen(() -> setStateCommand(State.OFF));
+    }
+
+    /**
      * Example command factory method. Periodic tells the stage to run according to
      * the state
      *
