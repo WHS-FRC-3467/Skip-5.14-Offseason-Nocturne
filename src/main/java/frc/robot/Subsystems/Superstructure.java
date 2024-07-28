@@ -6,12 +6,7 @@ package frc.robot.Subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import frc.robot.Subsystems.Arm.ArmSubsystem;
-import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem;
-import frc.robot.Subsystems.Stage.StageSubsystem;
+import frc.robot.Subsystems.CommandSwerveDrivetrain;
 import frc.robot.RobotContainer;
 import frc.robot.Util.RobotState;
 import lombok.Getter;
@@ -23,20 +18,20 @@ public class Superstructure extends SubsystemBase {
     
     @Getter
     @Setter
-    RobotState m_SuperState = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.STOWED, ShooterSubsystem.ShooterState.STOP);
+    RobotState m_SuperState = new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
 
     // Declare various "options" for our superstate
-    RobotState INTAKE = new RobotState(IntakeSubsystem.State.FWD, StageSubsystem.State.INTAKE, ArmSubsystem.ArmState.STOWED, ShooterSubsystem.ShooterState.STOP);
-    RobotState EJECT = new RobotState(IntakeSubsystem.State.REV, StageSubsystem.State.REV, ArmSubsystem.ArmState.STOWED, ShooterSubsystem.ShooterState.STOP);
-    RobotState SUBWOOFER = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.SUBWOOFER, ShooterSubsystem.ShooterState.SUBWOOFER);
-    RobotState PODIUM = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.PODIUM, ShooterSubsystem.ShooterState.SHOOT);
-    RobotState WING = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.WING, ShooterSubsystem.ShooterState.SHOOT);
-    RobotState AMP = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.AMP, ArmSubsystem.ArmState.AMP, ShooterSubsystem.ShooterState.AMP);
-    RobotState CLIMB = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.CLIMB, ShooterSubsystem.ShooterState.STOP);
-    RobotState HARMONY = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.HARMONY, ShooterSubsystem.ShooterState.STOP);
-    RobotState AIMING = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.AIMING, ShooterSubsystem.ShooterState.SHOOT); // Tentative
-    RobotState FEED = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.FEED, ShooterSubsystem.ShooterState.FEED);
-    RobotState PASSTHROUGH = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.FEED, ShooterSubsystem.ShooterState.PASSTHROUGH);
+    RobotState INTAKE = new RobotState(Intake.State.FWD, Stage.State.INTAKE, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
+    RobotState EJECT = new RobotState(Intake.State.REV, Stage.State.REV, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
+    RobotState SUBWOOFER = new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.SUBWOOFER, Shooter.ShooterState.SUBWOOFER);
+    RobotState PODIUM = new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.PODIUM, Shooter.ShooterState.SHOOT);
+    RobotState WING = new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.WING, Shooter.ShooterState.SHOOT);
+    RobotState AMP = new RobotState(Intake.State.OFF, Stage.State.AMP, Arm.ArmState.AMP, Shooter.ShooterState.AMP);
+    RobotState CLIMB = new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.CLIMB, Shooter.ShooterState.STOP);
+    RobotState HARMONY = new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.HARMONY, Shooter.ShooterState.STOP);
+    RobotState AIMING = new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.AIMING, Shooter.ShooterState.SHOOT); // Tentative
+    RobotState FEED = new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.FEED, Shooter.ShooterState.FEED);
+    RobotState PASSTHROUGH = new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.FEED, Shooter.ShooterState.PASSTHROUGH);
 
 
     /** Creates a new SuperstructureSubsystem. */

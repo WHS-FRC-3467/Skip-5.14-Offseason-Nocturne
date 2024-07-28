@@ -26,15 +26,15 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Subsystems.Arm.ArmSubsystem;
-import frc.robot.Subsystems.Arm.ArmSubsystem.ArmState;
-import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
-import frc.robot.Subsystems.Drivetrain.Telemetry;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem.ShooterState;
-import frc.robot.Subsystems.Stage.StageSubsystem;
+import frc.robot.Subsystems.Arm;
+import frc.robot.Subsystems.CommandSwerveDrivetrain;
+import frc.robot.Subsystems.Intake;
+import frc.robot.Subsystems.Shooter;
+import frc.robot.Subsystems.Stage;
+import frc.robot.Subsystems.Shooter.ShooterState;
 import frc.robot.Subsystems.Superstructure;
+import frc.robot.Subsystems.Telemetry;
+import frc.robot.Subsystems.Arm.ArmState;
 import frc.robot.Util.RobotState;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -71,10 +71,10 @@ public class RobotContainer {
 
     // The robot's subsystems and commands are defined here...
     public final CommandSwerveDrivetrain m_Drivetrain = TunerConstants.DriveTrain;
-    private final IntakeSubsystem m_IntakeSubsystem = new IntakeSubsystem();
-    private final ShooterSubsystem m_ShooterSubsystem = new ShooterSubsystem();
-    private final StageSubsystem m_StageSubsystem = new StageSubsystem();
-    private final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
+    private final Intake m_intake = new Intake();
+    private final Shooter m_shooter = new Shooter();
+    private final Stage m_stage = new Stage();
+    private final Arm m_arm = new Arm();
     private final Limelight m_LimeLight = new Limelight("ll");
     // Instantiate driver and operator controllers
     CommandXboxPS5Controller m_driverController = new CommandXboxPS5Controller(OperatorConstants.kDriverControllerPort);
@@ -128,8 +128,8 @@ public class RobotContainer {
         SmartDashboard.putData("Speed Limit", speedChooser);
 
         // Set Default Commands
-        m_IntakeSubsystem.setDefaultCommand(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.OFF));
-        m_StageSubsystem.setDefaultCommand(m_StageSubsystem.setStateCommand(StageSubsystem.State.OFF));
+        m_intake.setDefaultCommand(m_intake.setStateCommand(Intake.State.OFF));
+        m_stage.setDefaultCommand(m_stage.setStateCommand(Stage.State.OFF));
         // Configure the trigger bindings
         configureBindings();
     }
@@ -199,18 +199,18 @@ public class RobotContainer {
 
         // Bindings that would be used in a match
         // Schedule `runShooterCommand` when the Xbox controller's B button is pressed,cancelling on release.
-        m_driverController.b().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.SHOOT));
-        // A button: stop shooter
-        m_driverController.a().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.STOP));
+        m_driverController.b().onTrue(m_shooter.setStateCommand(ShooterState.SHOOT));
+        // A button: stop m_shooter
+        m_driverController.a().onTrue(m_shooter.setStateCommand(ShooterState.STOP));
         // Manual Intake
-        m_driverController.x().onTrue(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD));
+        m_driverController.x().onTrue(m_intake.setStateCommand(Intake.State.FWD));
         // Intake Note Command
-        m_driverController.leftTrigger().whileTrue(m_ArmSubsystem.setStateCommand(ArmState.STOWED)
-            .until(m_ArmSubsystem.isArmAtState())
-            .andThen(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD), m_StageSubsystem.runStageUntilNoteCommand())));
+        m_driverController.leftTrigger().whileTrue(m_arm.setStateCommand(ArmState.STOWED)
+            .until(m_arm.isArmAtState())
+            .andThen(new ParallelCommandGroup(m_intake.setStateCommand(Intake.State.FWD), m_stage.runStageUntilNoteCommand())));
         // Expel note - Manual outtake
-        m_driverController.rightTrigger().whileTrue(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.REV), m_StageSubsystem.setStateCommand(StageSubsystem.State.REV)));
-        // Once the button is lifted, the intake should go back to its default command
+        m_driverController.rightTrigger().whileTrue(new ParallelCommandGroup(m_intake.setStateCommand(Intake.State.REV), m_stage.setStateCommand(Stage.State.REV)));
+        // Once the button is lifted, the m_intake should go back to its default command
     }
 
     /**

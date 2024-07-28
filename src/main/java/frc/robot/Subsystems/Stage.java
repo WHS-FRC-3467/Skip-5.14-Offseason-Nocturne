@@ -1,4 +1,4 @@
-package frc.robot.Subsystems.Stage;
+package frc.robot.Subsystems;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-public class StageSubsystem extends SubsystemBase {
+public class Stage extends SubsystemBase {
 
     @RequiredArgsConstructor
     @Getter
@@ -55,7 +55,7 @@ public class StageSubsystem extends SubsystemBase {
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.k_INTAKE_BEAM_BREAK);
 
     /** Creates a new StageSubsystem. */
-    public StageSubsystem() {
+    public Stage() {
 
         thrifty_nova.setBrakeMode(true);
         thrifty_nova.setInverted(false);

@@ -1,4 +1,4 @@
-package frc.robot.Subsystems.Shooter;
+package frc.robot.Subsystems;
 
 import java.util.function.DoubleSupplier;
 
@@ -29,7 +29,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-public class ShooterSubsystem extends SubsystemBase {
+public class Shooter extends SubsystemBase {
 
     /* Declare ShooterState Variables - This enum is used to keep track of what the shooter is doing
     *   Numbers should be in rotations per second. Left supplier corresponds to left shooter motor, right supplier to right shooter motor
@@ -70,7 +70,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
 
-    public ShooterSubsystem() {
+    public Shooter() {
         
         var talonFXConfigurator = new TalonFXConfiguration();
         // enable stator current limit

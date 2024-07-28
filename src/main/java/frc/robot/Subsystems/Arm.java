@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.Subsystems.Arm;
+package frc.robot.Subsystems;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 
@@ -38,7 +38,7 @@ import lombok.Setter;
  * https://docs.wpilib.org/en/stable/docs/software/commandbased/profilepid-subsystems-commands.html
  *
  */
-public class ArmSubsystem extends ProfiledPIDSubsystem {
+public class Arm extends ProfiledPIDSubsystem {
 
     TalonFX m_armLead = new TalonFX(CanConstants.ID_ArmLeader);
     TalonFX m_armFollow = new TalonFX(CanConstants.ID_ArmFollower);
@@ -91,7 +91,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     /*
      * Constructor
      */
-    public ArmSubsystem() {
+    public Arm() {
 
         super(
                 new ProfiledPIDController(

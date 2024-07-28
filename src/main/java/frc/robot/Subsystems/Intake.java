@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.Subsystems.Intake;
+package frc.robot.Subsystems;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import java.util.function.DoubleSupplier;
 
-public class IntakeSubsystem extends SubsystemBase {
+public class Intake extends SubsystemBase {
 
     @RequiredArgsConstructor
     @Getter
@@ -53,7 +53,7 @@ public class IntakeSubsystem extends SubsystemBase {
     TalonFX m_intakeFollow = new TalonFX(CanConstants.k_INTAKE_RIGHT_CAN_ID);
 
     /** Creates a new IntakeSubsystem. */
-    public IntakeSubsystem() {
+    public Intake() {
         
         var talonFXConfigurator = m_intakeLead.getConfigurator();
         var limitConfigs = new CurrentLimitsConfigs();
