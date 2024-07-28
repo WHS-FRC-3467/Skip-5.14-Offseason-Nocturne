@@ -9,15 +9,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-
-import frc.robot.Subsystems.Arm.ArmSubsystem;
-import frc.robot.Subsystems.Arm.ArmSubsystem.ArmState;
-import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem.ShooterState;
-import frc.robot.Subsystems.Stage.StageSubsystem;
-import frc.robot.Subsystems.Stage.StageSubsystem.State;
+import frc.robot.Subsystems.Arm.ArmState;
+import frc.robot.Subsystems.Shooter.ShooterState;
+import frc.robot.Subsystems.Stage.State;
 import frc.robot.RobotContainer;
 import frc.robot.Util.RobotState;
 import frc.robot.Vision.Limelight;
@@ -32,45 +26,45 @@ public class Superstructure extends SubsystemBase {
 
     @Getter
     @Setter
-    public RobotState m_SuperState = new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.STOWED, ShooterSubsystem.ShooterState.STOP);
+    public RobotState m_SuperState = new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
 
     // Declare various "options" for our superstate
     public RobotState IDLE = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.STOWED, ShooterSubsystem.ShooterState.STOP);
+        new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
     public RobotState INTAKE = 
-        new RobotState(IntakeSubsystem.State.FWD, StageSubsystem.State.INTAKE, ArmSubsystem.ArmState.STOWED, ShooterSubsystem.ShooterState.STOP);
+        new RobotState(Intake.State.FWD, Stage.State.INTAKE, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
     public RobotState EJECT = 
-        new RobotState(IntakeSubsystem.State.REV, StageSubsystem.State.REV, ArmSubsystem.ArmState.STOWED, ShooterSubsystem.ShooterState.STOP);
+        new RobotState(Intake.State.REV, Stage.State.REV, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
     public RobotState SUBWOOFER = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.SUBWOOFER, ShooterSubsystem.ShooterState.SUBWOOFER);
+        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.SUBWOOFER, Shooter.ShooterState.SUBWOOFER);
     public RobotState PODIUM = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.PODIUM, ShooterSubsystem.ShooterState.SHOOT);
+        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.PODIUM, Shooter.ShooterState.SHOOT);
     public RobotState WING = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.WING, ShooterSubsystem.ShooterState.SHOOT);
+        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.WING, Shooter.ShooterState.SHOOT);
     public RobotState AMP = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.AMP, ArmSubsystem.ArmState.AMP, ShooterSubsystem.ShooterState.AMP);
+        new RobotState(Intake.State.OFF, Stage.State.AMP, Arm.ArmState.AMP, Shooter.ShooterState.AMP);
     public RobotState CLIMB = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.CLIMB, ShooterSubsystem.ShooterState.STOP);
+        new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.CLIMB, Shooter.ShooterState.STOP);
     public RobotState HARMONY = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.HARMONY, ShooterSubsystem.ShooterState.STOP);
+        new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.HARMONY, Shooter.ShooterState.STOP);
     public RobotState AIMING = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.OFF, ArmSubsystem.ArmState.AIMING, ShooterSubsystem.ShooterState.SHOOT); // Tentative
+        new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.AIMING, Shooter.ShooterState.SHOOT); // Tentative
     public RobotState FEED = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.FEED, ShooterSubsystem.ShooterState.FEED);
+        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.FEED, Shooter.ShooterState.FEED);
     public RobotState PASSTHROUGH = 
-        new RobotState(IntakeSubsystem.State.OFF, StageSubsystem.State.SHOOTING, ArmSubsystem.ArmState.FEED, ShooterSubsystem.ShooterState.PASSTHROUGH);
+        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.FEED, Shooter.ShooterState.PASSTHROUGH);
 
     /** Arm subsystem reference. */
-    private final ArmSubsystem m_ArmSubsystem;
+    private final Arm m_ArmSubsystem;
 
     /** Intake subsystem reference. */
-    private final IntakeSubsystem m_IntakeSubsystem;
+    private final Intake m_IntakeSubsystem;
 
     /** Shooter subsystem reference. */
-    private final ShooterSubsystem m_ShooterSubsystem;
+    private final Shooter m_ShooterSubsystem;
 
     /** Stage subsystem reference. */
-    private final StageSubsystem m_StageSubsystem;
+    private final Stage m_StageSubsystem;
 
         /** Drivetrain subsystem reference. */
     private final CommandSwerveDrivetrain m_Drivetrain;
@@ -91,10 +85,10 @@ public class Superstructure extends SubsystemBase {
     /** Creates a new SuperstructureSubsystem. */
     public Superstructure() {
 
-        m_ArmSubsystem = ArmSubsystem.getInstance();
-        m_IntakeSubsystem = IntakeSubsystem.getInstance();
-        m_ShooterSubsystem = ShooterSubsystem.getInstance();
-        m_StageSubsystem = StageSubsystem.getInstance();
+        m_ArmSubsystem = Arm.getInstance();
+        m_IntakeSubsystem = Intake.getInstance();
+        m_ShooterSubsystem = Shooter.getInstance();
+        m_StageSubsystem = Stage.getInstance();
         m_Drivetrain = CommandSwerveDrivetrain.getInstance();
     
         // Set Arm to Stow
@@ -115,7 +109,7 @@ public class Superstructure extends SubsystemBase {
     // Command factories. Public as of right now for direct use with Robot Container.
 
     public Command manualIntakeCommand() {
-        return m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD);
+        return m_IntakeSubsystem.setStateCommand(Intake.State.FWD);
     }
 
     /**
@@ -126,11 +120,11 @@ public class Superstructure extends SubsystemBase {
     public Command intakeCommand() {
         return m_ArmSubsystem.setStateCommand(ArmState.STOWED)
             .until(m_ArmSubsystem.isArmAtState())
-            .andThen(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.FWD), m_StageSubsystem.runStageUntilNoteCommand()));
+            .andThen(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(Intake.State.FWD), m_StageSubsystem.runStageUntilNoteCommand()));
     }
 
     public Command ejectCommand() {
-        return new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.REV), m_StageSubsystem.setStateCommand(StageSubsystem.State.REV));
+        return new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(Intake.State.REV), m_StageSubsystem.setStateCommand(Stage.State.REV));
     }
 
     public Command startShooterCommand() {

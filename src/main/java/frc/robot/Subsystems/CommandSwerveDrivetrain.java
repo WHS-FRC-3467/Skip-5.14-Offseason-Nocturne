@@ -1,4 +1,4 @@
-package frc.robot.Subsystems.Drivetrain;
+package frc.robot.Subsystems;
 
 import java.util.function.Supplier;
 // Started with Jason Daming's improved version of the CTRE Swerve Example 
@@ -28,6 +28,9 @@ import frc.robot.generated.TunerConstants;
 
 import static edu.wpi.first.units.Units.*;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 /**
  * Class that extends the Phoenix SwerveDrivetrain class and implements
  * subsystem
@@ -38,6 +41,25 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     /** Swerve subsystem singleton. */
     private static CommandSwerveDrivetrain instance = null;
     
+    // State machine
+    @RequiredArgsConstructor
+    @Getter
+    public enum State {
+        TELEOP,
+        HEADING,
+        SHOOTONTHEMOVE;
+
+    }
+
+    @Setter
+    private State state = State.TELEOP;
+
+    public State getDrivetrainState() {
+        return state;
+    }
+    
+    private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
+
     private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
@@ -161,4 +183,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     public Command runDriveSlipTest() {
         return m_slipSysIdRoutine.quasistatic(SysIdRoutine.Direction.kForward);
     }
+
+    public Command setStateCommand(State state) {
+        return startEnd(() -> setState(state),() -> setState(State.TELEOP));
+      }
 }

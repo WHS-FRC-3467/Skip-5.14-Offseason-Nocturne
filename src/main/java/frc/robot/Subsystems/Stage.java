@@ -1,4 +1,4 @@
-package frc.robot.Subsystems.Stage;
+package frc.robot.Subsystems;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -17,18 +17,16 @@ import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.StageConstants;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 // import frc.robot.sim.PhysicsSim;
 import frc.robot.Util.ThriftyNova;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-public class StageSubsystem extends SubsystemBase {
+public class Stage extends SubsystemBase {
 
     /** Stage subsystem singleton. For superstructure. */
-    private static StageSubsystem instance = null;
+    private static Stage instance = null;
 
     @RequiredArgsConstructor
     @Getter
@@ -65,16 +63,16 @@ public class StageSubsystem extends SubsystemBase {
     *
     * @return the stage subsystem instance.
     */
-    public static StageSubsystem getInstance() {
+    public static Stage getInstance() {
         if (instance == null) {
-        instance = new StageSubsystem();
+        instance = new Stage();
         }
 
         return instance;
     }
 
     /** Creates a new StageSubsystem. */
-    public StageSubsystem() {
+    public Stage() {
 
         thrifty_nova.setBrakeMode(true);
         thrifty_nova.setInverted(false);

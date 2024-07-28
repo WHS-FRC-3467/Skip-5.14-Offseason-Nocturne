@@ -27,16 +27,13 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.RobotConstants;
-import frc.robot.Subsystems.Arm.ArmSubsystem;
-import frc.robot.Subsystems.Arm.ArmSubsystem.ArmState;
-import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
-import frc.robot.Subsystems.Drivetrain.Telemetry;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem.ShooterState;
-import frc.robot.Subsystems.Stage.StageSubsystem;
+import frc.robot.Subsystems.Arm;
+import frc.robot.Subsystems.CommandSwerveDrivetrain;
+import frc.robot.Subsystems.Intake;
+import frc.robot.Subsystems.Shooter;
+import frc.robot.Subsystems.Stage;
 import frc.robot.Subsystems.Superstructure;
+import frc.robot.Subsystems.Telemetry;
 import frc.robot.Util.RobotState;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -77,10 +74,10 @@ public class RobotContainer {
 
     // The robot's subsystems and commands are defined here...
     public final CommandSwerveDrivetrain m_Drivetrain;
-    private final IntakeSubsystem m_IntakeSubsystem;
-    private final ShooterSubsystem m_ShooterSubsystem;
-    private final StageSubsystem m_StageSubsystem;
-    private final ArmSubsystem m_ArmSubsystem;
+    private final Intake m_IntakeSubsystem;
+    private final Shooter m_ShooterSubsystem;
+    private final Stage m_StageSubsystem;
+    private final Arm m_ArmSubsystem;
     private final Limelight m_LimeLight = new Limelight("ll");
     private final Superstructure m_Superstructure;
     // Instantiate driver and operator controllers
@@ -112,10 +109,10 @@ public class RobotContainer {
      */
     public RobotContainer() {
         
-        m_ArmSubsystem = ArmSubsystem.getInstance();
-        m_StageSubsystem = StageSubsystem.getInstance();
-        m_IntakeSubsystem = IntakeSubsystem.getInstance();
-        m_ShooterSubsystem = ShooterSubsystem.getInstance();
+        m_ArmSubsystem = Arm.getInstance();
+        m_StageSubsystem = Stage.getInstance();
+        m_IntakeSubsystem = Intake.getInstance();
+        m_ShooterSubsystem = Shooter.getInstance();
         m_Superstructure = Superstructure.getInstance();
         m_Drivetrain = CommandSwerveDrivetrain.getInstance();
         
@@ -143,8 +140,8 @@ public class RobotContainer {
         SmartDashboard.putData("Speed Limit", speedChooser);
 
         // Set Default Commands
-        m_IntakeSubsystem.setDefaultCommand(m_IntakeSubsystem.setStateCommand(IntakeSubsystem.State.OFF));
-        m_StageSubsystem.setDefaultCommand(m_StageSubsystem.setStateCommand(StageSubsystem.State.OFF));
+        m_IntakeSubsystem.setDefaultCommand(m_IntakeSubsystem.setStateCommand(Intake.State.OFF));
+        m_StageSubsystem.setDefaultCommand(m_StageSubsystem.setStateCommand(Stage.State.OFF));
         // Configure the trigger bindings
         configureBindings();
     }

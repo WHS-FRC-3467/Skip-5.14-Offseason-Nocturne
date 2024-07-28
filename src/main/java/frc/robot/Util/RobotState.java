@@ -6,12 +6,11 @@ package frc.robot.Util;
 
 import java.util.function.DoubleSupplier;
 
-import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.Subsystems.Arm.ArmSubsystem;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem;
-import frc.robot.Subsystems.Stage.StageSubsystem;
+import frc.robot.Subsystems.Arm;
+import frc.robot.Subsystems.Intake;
+import frc.robot.Subsystems.Shooter;
+import frc.robot.Subsystems.Stage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -28,12 +27,12 @@ import lombok.Setter;
 
     public class RobotState {
         
-        IntakeSubsystem.State INTAKE;
-        StageSubsystem.State STAGE;
-        ArmSubsystem.ArmState ARM;
-        ShooterSubsystem.ShooterState SHOOTER;
+        Intake.State INTAKE;
+        Stage.State STAGE;
+        Arm.ArmState ARM;
+        Shooter.ShooterState SHOOTER;
 
-        public RobotState(IntakeSubsystem.State intakestate, StageSubsystem.State stagestate, ArmSubsystem.ArmState armstate, ShooterSubsystem.ShooterState shooterstate){
+        public RobotState(Intake.State intakestate, Stage.State stagestate, Arm.ArmState armstate, Shooter.ShooterState shooterstate){
             this.INTAKE = intakestate;
             this.STAGE = stagestate;
             this.ARM = armstate;
@@ -41,19 +40,43 @@ import lombok.Setter;
 
         }
 
-        public IntakeSubsystem.State getIntakeState() {
+        public void reset(Intake.State intakestate, Stage.State stagestate, Arm.ArmState armstate, Shooter.ShooterState shooterstate){
+            this.INTAKE = intakestate;
+            this.STAGE = stagestate;
+            this.ARM = armstate;
+            this.SHOOTER = shooterstate;
+
+        }
+
+        public void setIntakeState(Intake.State intakeState) {
+            this.INTAKE = intakeState;
+        }
+
+        public void setStageState(Stage.State stageState) {
+             this.STAGE = stageState;
+        }
+
+        public void setArmState(Arm.ArmState armState) {
+            this.ARM = armState;
+        }
+
+        public void setShooterState(Shooter.ShooterState shooterState) {
+            this.SHOOTER = shooterState;
+        }
+
+        public Intake.State getIntakeState() {
             return this.INTAKE;
         }
 
-        public StageSubsystem.State getStageState() {
+        public Stage.State getStageState() {
             return this.STAGE;
         }
 
-        public ArmSubsystem.ArmState getArmState() {
+        public Arm.ArmState getArmState() {
             return this.ARM;
         }
 
-        public ShooterSubsystem.ShooterState getShooterState() {
+        public Shooter.ShooterState getShooterState() {
             return this.SHOOTER;
         }
     }
