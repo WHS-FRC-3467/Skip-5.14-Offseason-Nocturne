@@ -126,5 +126,12 @@ public class Constants {
         } */
     }
 
+    public static final class ControllerConstants {
+
+        public static final double leftTriggerMin = 0.3;
+        public static final double leftTriggerMid = 0.6;
+
+    }
+
 }
 

@@ -43,7 +43,7 @@ public class RobotContainer {
   
   
   private void configureBindings() {
-    SmartDashboard.putData(CommandScheduler.getInstance());
+    robotState.getShotAngle();
 
     drivetrain.setDefaultCommand(drivetrain.run(
         () -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX())));
@@ -51,14 +51,18 @@ public class RobotContainer {
     drivetrain.registerTelemetry(logger::telemeterize);
     
     //TODO: Add smart collection
-    driverCtrl.leftBumper().whileTrue(arm.setStateCommand(Arm.State.INTAKE)
+    driverCtrl.leftTrigger(Constants.ControllerConstants.leftTriggerMin).whileTrue(arm.setStateCommand(Arm.State.INTAKE)
         .alongWith(Commands.waitUntil(arm::atGoal)
             .andThen(stage.setStateCommand(Stage.State.INTAKE)
                 .alongWith(intake.setStateCommand(Intake.State.INTAKE))))
         .until(() -> stage.hasNote()));
 
-    driverCtrl.rightBumper().whileTrue(stage.setStateCommand(Stage.State.SHOOT));
+/*     driverCtrl.leftTrigger(Constants.ControllerConstants.leftTriggerMid).whileTrue(
+      Commands.startEnd(() -> drivetrain.setHeadingAngle(robotState.getAmpAngle()),drivetrain::clearHeadingAngle)); */
 
+    driverCtrl.rightTrigger().whileTrue(stage.setStateCommand(Stage.State.SHOOT));
+
+    //TODO: Add Harmony climb
     driverCtrl.y().whileTrue(arm.setStateCommand(Arm.State.CLIMB));
 
     driverCtrl.b()
