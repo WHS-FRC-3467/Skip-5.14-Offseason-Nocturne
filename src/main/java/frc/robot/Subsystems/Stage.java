@@ -148,7 +148,7 @@ public class Stage extends SubsystemBase {
      * @return a command setting the stage state to the argument
      */
     public Command setStateCommand(State stageState) {
-        return runOnce(() -> this.state = stageState);
+        return startEnd(() -> this.state = stageState, ()-> this.state = State.OFF);
     }
 
 }

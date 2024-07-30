@@ -150,6 +150,6 @@ public class Shooter extends SubsystemBase {
     public Command setStateCommand(ShooterState state) {
         // Inline construction of command goes here.
         // Subsystem::RunOnce implicitly requires `this` subsystem.
-        return runOnce(() -> this.m_ShooterState = state);
+        return startEnd(() -> this.m_ShooterState = state, ()-> this.m_ShooterState = ShooterState.STOP);
       }
 }

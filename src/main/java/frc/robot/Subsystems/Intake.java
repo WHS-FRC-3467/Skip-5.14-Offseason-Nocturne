@@ -123,6 +123,6 @@ public class Intake extends SubsystemBase {
      * @return a command setting the intake state to the argument
      */
     public Command setStateCommand(State intakestate) {
-        return runOnce(() -> this.state = intakestate);
+        return startEnd(() -> this.state = intakestate, () -> this.state = State.OFF);
     }
 }

@@ -6,6 +6,7 @@ package frc.robot.Subsystems;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -91,9 +92,6 @@ public class Superstructure extends SubsystemBase {
         m_StageSubsystem = Stage.getInstance();
         m_Drivetrain = CommandSwerveDrivetrain.getInstance();
     
-        // Set Arm to Stow
-        m_ArmSubsystem.setStateCommand(m_SuperState.getArmState());
-
     }
 
     @Override
@@ -101,86 +99,11 @@ public class Superstructure extends SubsystemBase {
         // This method will be called once per scheduler run
         SmartDashboard.putString("Superstructure State", getM_SuperState().toString());
 
-        // TODO: Call (and create) commands that move the subsystems to their states according to the SuperState
-        // Either do it here or in setStateCommand
+        // Update SuperState periodically to for eventual use of LEDs
+        m_SuperState.reset(m_IntakeSubsystem.getState(), m_StageSubsystem.getState(), m_ArmSubsystem.getM_ArmState(), m_ShooterSubsystem.getM_ShooterState());
     }
 
 
-    // Command factories. Public as of right now for direct use with Robot Container.
-
-    public Command manualIntakeCommand() {
-        return m_IntakeSubsystem.setStateCommand(Intake.State.FWD);
-    }
-
-    /**
-     * 1. Move Arm Down to STOW
-     * 2. Then, run the Intake and Stage until the Stage Detects a Note
-     * @return a command
-    */
-    public Command intakeCommand() {
-        return m_ArmSubsystem.setStateCommand(ArmState.STOWED)
-            .until(m_ArmSubsystem.isArmAtState())
-            .andThen(new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(Intake.State.FWD), m_StageSubsystem.runStageUntilNoteCommand()));
-    }
-
-    public Command ejectCommand() {
-        return new ParallelCommandGroup(m_IntakeSubsystem.setStateCommand(Intake.State.REV), m_StageSubsystem.setStateCommand(Stage.State.REV));
-    }
-
-    public Command startShooterCommand() {
-        return m_ShooterSubsystem.setStateCommand(ShooterState.SHOOT);
-    }
-
-    public Command stopShooterCommand() {
-        return m_ShooterSubsystem.setStateCommand(ShooterState.STOP);
-    }
-
-    /**
-     * Runs stage wheels until beambreak does not detect note in stage
-     * @return a command that does not end until note leaves stage
-    */
-    public Command shootCommand() {
-        return m_StageSubsystem.runStageUntilNoNoteCommand();
-    }
-
-        // Operator: DPad Left: Arm to Podium position (when pressed)
-    public Command armToPodiumCommand() {
-        if (m_StageSubsystem.isNoteInStage()) {
-            return new ParallelCommandGroup(
-                m_ShooterSubsystem.setStateCommand(ShooterState.SHOOT), 
-                m_ArmSubsystem.setStateCommand(ArmState.PODIUM));
-        } else {
-            return null;
-        }
-    }
-    // Operator: DPad Up: Shooter/Arm to AMP Position & Speed (when pressed)
-    public Command armToAmpCommand() {
-        if (m_StageSubsystem.isNoteInStage()) {
-            return new ParallelCommandGroup(
-                m_ShooterSubsystem.setStateCommand(ShooterState.AMP), 
-                m_ArmSubsystem.setStateCommand(ArmState.AMP))
-                .until(()-> (m_ShooterSubsystem.isShooterAtSpeed() && m_ArmSubsystem.isArmAtState().getAsBoolean()));
-        } else {
-            return null;
-        }
-    }
-
-    // Operator: DPad Right: Arm to Harmony Position (when pressed)
-    public Command armToHarmonyCommand() {
-        return new ParallelCommandGroup(
-            m_ShooterSubsystem.setStateCommand(ShooterState.STOP), 
-            m_ArmSubsystem.setStateCommand(ArmState.HARMONY)).until(m_ArmSubsystem.isArmAtState())
-            .until(()-> (m_ShooterSubsystem.isShooterAtSpeed() && m_ArmSubsystem.isArmAtState().getAsBoolean()));
-    }
-
-    // Operator: DPad Down: Arm to Subwoofer Position (when pressed)
-    public Command armToSubCommand() {
-        return new ParallelCommandGroup(
-            m_ShooterSubsystem.setStateCommand(ShooterState.SUBWOOFER), 
-            m_ArmSubsystem.setStateCommand(ArmState.SUBWOOFER))
-            .until(()-> (m_ShooterSubsystem.isShooterAtSpeed() && m_ArmSubsystem.isArmAtState().getAsBoolean()));
-    }
-    
     /**
      * @param state - use one of the defined states (INTAKE, EJECT, SUBWOOFER, etc)
      * @return a startEnd command that sets m_Superstate to the parameter for the duration of the command

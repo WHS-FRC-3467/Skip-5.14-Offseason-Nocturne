@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
+import frc.robot.Subsystems.Shooter.ShooterState;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -211,8 +212,13 @@ public class Arm extends ProfiledPIDSubsystem {
     *  3. Because the state has just changed, set a new goal state in ProfiledPIDSubsystem
     */
     public Command setStateCommand(ArmState state) {
-        return runOnce(() -> this.m_ArmState = state)
-        .andThen(()-> this.m_controller.setTolerance(m_ArmState.getTolerance()))
-        .andThen(()-> setGoal(m_ArmState.getStateOutput()));
+        return startEnd(() -> {
+            this.m_ArmState = state;
+            this.m_controller.setTolerance(m_ArmState.getTolerance());
+            m_controller.setGoal(m_ArmState.getStateOutput());
+        },
+
+                () -> this.m_ArmState = ArmState.STOWED);
+
     }
 }
