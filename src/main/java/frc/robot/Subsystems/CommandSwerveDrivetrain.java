@@ -28,12 +28,38 @@ import frc.robot.generated.TunerConstants;
 
 import static edu.wpi.first.units.Units.*;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 /**
  * Class that extends the Phoenix SwerveDrivetrain class and implements
  * subsystem
  * so it can be used in command-based projects easily.
  */
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
+    // For superstructure
+    /** Swerve subsystem singleton. */
+    private static CommandSwerveDrivetrain instance = null;
+    
+    // State machine
+    @RequiredArgsConstructor
+    @Getter
+    public enum State {
+        TELEOP,
+        HEADING,
+        SHOOTONTHEMOVE;
+
+    }
+
+    @Setter
+    private State state = State.TELEOP;
+
+    public State getDrivetrainState() {
+        return state;
+    }
+    
+    private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
+
     private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
@@ -81,6 +107,19 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 },
                 this); // Subsystem for requirements
     }
+
+    /**
+    * Returns the swerve subsystem instance. For superstructure
+    *
+    * @return the swerve subsystem instance.
+    */
+    public static CommandSwerveDrivetrain getInstance() {
+        if (instance == null) {
+            instance = TunerConstants.DriveTrain;
+        }
+
+        return instance;
+   }
 
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
         return run(() -> this.setControl(requestSupplier.get()));
@@ -144,4 +183,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     public Command runDriveSlipTest() {
         return m_slipSysIdRoutine.quasistatic(SysIdRoutine.Direction.kForward);
     }
+
+    public Command setStateCommand(State state) {
+        return startEnd(() -> setState(state),() -> setState(State.TELEOP));
+      }
 }

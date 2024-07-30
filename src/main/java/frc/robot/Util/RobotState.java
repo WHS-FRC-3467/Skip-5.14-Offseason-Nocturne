@@ -6,7 +6,6 @@ package frc.robot.Util;
 
 import java.util.function.DoubleSupplier;
 
-import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Subsystems.Arm;
 import frc.robot.Subsystems.Intake;
@@ -27,7 +26,7 @@ import lombok.Setter;
  */
 
     public class RobotState {
-        // TODO: Integrate Shooter and Arm state/setpoint into combined setpoints
+        
         Intake.State INTAKE;
         Stage.State STAGE;
         Arm.ArmState ARM;
@@ -39,5 +38,45 @@ import lombok.Setter;
             this.ARM = armstate;
             this.SHOOTER = shooterstate;
 
+        }
+
+        public void reset(Intake.State intakestate, Stage.State stagestate, Arm.ArmState armstate, Shooter.ShooterState shooterstate){
+            this.INTAKE = intakestate;
+            this.STAGE = stagestate;
+            this.ARM = armstate;
+            this.SHOOTER = shooterstate;
+
+        }
+
+        public void setIntakeState(Intake.State intakeState) {
+            this.INTAKE = intakeState;
+        }
+
+        public void setStageState(Stage.State stageState) {
+             this.STAGE = stageState;
+        }
+
+        public void setArmState(Arm.ArmState armState) {
+            this.ARM = armState;
+        }
+
+        public void setShooterState(Shooter.ShooterState shooterState) {
+            this.SHOOTER = shooterState;
+        }
+
+        public Intake.State getIntakeState() {
+            return this.INTAKE;
+        }
+
+        public Stage.State getStageState() {
+            return this.STAGE;
+        }
+
+        public Arm.ArmState getArmState() {
+            return this.ARM;
+        }
+
+        public Shooter.ShooterState getShooterState() {
+            return this.SHOOTER;
         }
     }

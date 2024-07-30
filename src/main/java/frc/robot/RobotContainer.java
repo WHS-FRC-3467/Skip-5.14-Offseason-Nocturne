@@ -20,6 +20,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.Odometry;
 // import edu.wpi.first.math.MathUtil;
 // import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -31,10 +32,8 @@ import frc.robot.Subsystems.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Intake;
 import frc.robot.Subsystems.Shooter;
 import frc.robot.Subsystems.Stage;
-import frc.robot.Subsystems.Shooter.ShooterState;
 import frc.robot.Subsystems.Superstructure;
 import frc.robot.Subsystems.Telemetry;
-import frc.robot.Subsystems.Arm.ArmState;
 import frc.robot.Util.RobotState;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -59,6 +58,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+    
+    /** Robot container singleton. */
+    private static RobotContainer instance = null;
+
     // Declare the auto chooser
     private final SendableChooser<Command> autoChooser;
     // From CTRE swerve example
@@ -70,12 +73,13 @@ public class RobotContainer {
     private double AngularRate = MaxAngularRate; // This will be updated when turtle and reset to MaxAngularRate
 
     // The robot's subsystems and commands are defined here...
-    public final CommandSwerveDrivetrain m_Drivetrain = TunerConstants.DriveTrain;
-    private final Intake m_intake = new Intake();
-    private final Shooter m_shooter = new Shooter();
-    private final Stage m_stage = new Stage();
-    private final Arm m_arm = new Arm();
+    public final CommandSwerveDrivetrain m_Drivetrain;
+    private final Intake m_IntakeSubsystem;
+    private final Shooter m_ShooterSubsystem;
+    private final Stage m_StageSubsystem;
+    private final Arm m_ArmSubsystem;
     private final Limelight m_LimeLight = new Limelight("ll");
+    private final Superstructure m_Superstructure;
     // Instantiate driver and operator controllers
     CommandXboxPS5Controller m_driverController = new CommandXboxPS5Controller(OperatorConstants.kDriverControllerPort);
     CommandXboxPS5Controller m_operatorController = new CommandXboxPS5Controller(OperatorConstants.kOperatorControllerPort);
@@ -104,6 +108,14 @@ public class RobotContainer {
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
+        
+        m_ArmSubsystem = Arm.getInstance();
+        m_StageSubsystem = Stage.getInstance();
+        m_IntakeSubsystem = Intake.getInstance();
+        m_ShooterSubsystem = Shooter.getInstance();
+        m_Superstructure = Superstructure.getInstance();
+        m_Drivetrain = CommandSwerveDrivetrain.getInstance();
+        
         // Detect if controllers are missing / Stop multiple warnings
         DriverStation.silenceJoystickConnectionWarning(true);
         
@@ -128,10 +140,23 @@ public class RobotContainer {
         SmartDashboard.putData("Speed Limit", speedChooser);
 
         // Set Default Commands
-        m_intake.setDefaultCommand(m_intake.setStateCommand(Intake.State.OFF));
-        m_stage.setDefaultCommand(m_stage.setStateCommand(Stage.State.OFF));
+        m_IntakeSubsystem.setDefaultCommand(m_IntakeSubsystem.setStateCommand(Intake.State.OFF));
+        m_StageSubsystem.setDefaultCommand(m_StageSubsystem.setStateCommand(Stage.State.OFF));
         // Configure the trigger bindings
         configureBindings();
+    }
+
+    /**
+    * Returns the robot container.
+    *
+    * @return the robot container.
+    */
+    public static RobotContainer getInstance() {
+        if (instance == null) {
+            instance = new RobotContainer();
+        }
+
+        return instance;
     }
 
     /**
@@ -178,7 +203,7 @@ public class RobotContainer {
         }
             m_Drivetrain.registerTelemetry(logger::telemeterize);
 
-        Trigger speedPick = new Trigger(() -> lastSpeed != speedChooser.getSelected());
+        final Trigger speedPick = new Trigger(() -> lastSpeed != speedChooser.getSelected());
         speedPick.onTrue(runOnce(() -> newSpeed()));
 
         // Testing uses operator controller
@@ -199,18 +224,31 @@ public class RobotContainer {
 
         // Bindings that would be used in a match
         // Schedule `runShooterCommand` when the Xbox controller's B button is pressed,cancelling on release.
-        m_driverController.b().onTrue(m_shooter.setStateCommand(ShooterState.SHOOT));
-        // A button: stop m_shooter
-        m_driverController.a().onTrue(m_shooter.setStateCommand(ShooterState.STOP));
+        m_driverController.b().onTrue(m_Superstructure.startShooterCommand());
+        // A button: stop shooter
+        m_driverController.a().onTrue(m_Superstructure.stopShooterCommand());
         // Manual Intake
-        m_driverController.x().onTrue(m_intake.setStateCommand(Intake.State.FWD));
+        m_driverController.x().onTrue(m_Superstructure.manualIntakeCommand());
+        // Manual shoot note (run stage)
+        m_driverController.y().onTrue(m_Superstructure.shootCommand());
         // Intake Note Command
-        m_driverController.leftTrigger().whileTrue(m_arm.setStateCommand(ArmState.STOWED)
-            .until(m_arm.isArmAtState())
-            .andThen(new ParallelCommandGroup(m_intake.setStateCommand(Intake.State.FWD), m_stage.runStageUntilNoteCommand())));
+        m_driverController.leftTrigger().whileTrue(m_Superstructure.intakeCommand());
         // Expel note - Manual outtake
-        m_driverController.rightTrigger().whileTrue(new ParallelCommandGroup(m_intake.setStateCommand(Intake.State.REV), m_stage.setStateCommand(Stage.State.REV)));
-        // Once the button is lifted, the m_intake should go back to its default command
+        m_driverController.rightTrigger().whileTrue(m_Superstructure.ejectCommand());
+        
+        // Operator Controls
+            // Operator: DPad Left: Arm to Podium position (when pressed)
+        m_operatorController.povLeft().onTrue(m_Superstructure.armToPodiumCommand());
+
+        // Operator: DPad Up: Shooter/Arm to AMP Position & Speed (when pressed)
+        m_operatorController.povUp().onTrue(m_Superstructure.armToAmpCommand());
+
+        // Operator: DPad Right: Arm to Harmony Position (when pressed)
+        m_operatorController.povRight().onTrue(m_Superstructure.armToHarmonyCommand());
+
+        // Operator: DPad Down: Arm to Subwoofer Position (when pressed)
+        m_operatorController.povDown().onTrue(m_Superstructure.armToSubCommand());
+
     }
 
     /**

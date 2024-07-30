@@ -29,6 +29,9 @@ import java.util.function.DoubleSupplier;
 
 public class Intake extends SubsystemBase {
 
+    /** Intake subsystem singleton. For superstructure. */
+    private static Intake instance = null;
+
     @RequiredArgsConstructor
     @Getter
     public enum State{
@@ -51,6 +54,20 @@ public class Intake extends SubsystemBase {
     // Initalize Motors and Beam Break
     TalonFX m_intakeLead = new TalonFX(CanConstants.k_INTAKE_LEFT_CAN_ID);
     TalonFX m_intakeFollow = new TalonFX(CanConstants.k_INTAKE_RIGHT_CAN_ID);
+
+    // For superstructure
+    /**
+    * Returns the intake subsystem instance.
+    *
+    * @return the intake subsystem instance.
+    */
+    public static Intake getInstance() {
+        if (instance == null) {
+        instance = new Intake();
+        }
+
+        return instance;
+    }
 
     /** Creates a new IntakeSubsystem. */
     public Intake() {

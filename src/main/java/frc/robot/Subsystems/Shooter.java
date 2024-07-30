@@ -31,6 +31,9 @@ import lombok.Setter;
 
 public class Shooter extends SubsystemBase {
 
+    /** Shooter subsystem singleton. For superstructure. */
+    private static Shooter instance = null;
+
     /* Declare ShooterState Variables - This enum is used to keep track of what the shooter is doing
     *   Numbers should be in rotations per second. Left supplier corresponds to left shooter motor, right supplier to right shooter motor
     *   Example: ShooterState currentShooterState = ShooterState.SPOOLING;
@@ -69,6 +72,20 @@ public class Shooter extends SubsystemBase {
     NeutralOut m_neutralOut = new NeutralOut();
 
     final VelocityVoltage m_request = new VelocityVoltage(0).withSlot(0);
+
+    // For superstructure
+    /**
+    * Returns the shooter subsystem instance.
+    *
+    * @return the shooter subsystem instance.
+    */
+    public static Shooter getInstance() {
+        if (instance == null) {
+        instance = new Shooter();
+        }
+
+        return instance;
+    }
 
     public Shooter() {
         

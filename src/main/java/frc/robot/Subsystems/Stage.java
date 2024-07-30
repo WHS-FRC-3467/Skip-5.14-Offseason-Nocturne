@@ -25,6 +25,9 @@ import lombok.Setter;
 
 public class Stage extends SubsystemBase {
 
+    /** Stage subsystem singleton. For superstructure. */
+    private static Stage instance = null;
+
     @RequiredArgsConstructor
     @Getter
     public enum State {
@@ -53,6 +56,20 @@ public class Stage extends SubsystemBase {
     // Initialize devices
     ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.k_STAGE_CAN_ID);
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.k_INTAKE_BEAM_BREAK);
+
+    // For superstructure
+    /**
+    * Returns the stage subsystem instance.
+    *
+    * @return the stage subsystem instance.
+    */
+    public static Stage getInstance() {
+        if (instance == null) {
+        instance = new Stage();
+        }
+
+        return instance;
+    }
 
     /** Creates a new StageSubsystem. */
     public Stage() {
@@ -110,6 +127,17 @@ public class Stage extends SubsystemBase {
      */
     public Command runStageUntilNoteCommand() {
         return new RunCommand(() -> setStateCommand(State.INTAKE)).until(beambreakSupplier)
+                .andThen(() -> setStateCommand(State.OFF));
+    }
+
+    /**
+     * Run Stage until note is NOT detected, which ends the command
+     *
+     * @return a command setting the stage state to SHOOTING until a note is NOT in stage,
+     *         then it will set state to OFF.
+     */
+    public Command runStageUntilNoNoteCommand() {
+        return new RunCommand(() -> setStateCommand(State.SHOOTING)).until(()-> !beambreakSupplier.getAsBoolean())
                 .andThen(() -> setStateCommand(State.OFF));
     }
 
