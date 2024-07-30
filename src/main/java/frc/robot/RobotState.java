@@ -4,21 +4,44 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.Constants.FieldConstants;
 
 /** Add your docs here. */
 public class RobotState {
-    private final Rotation2d ampAngle = new Rotation2d(-Math.PI / 2);
+    private static RobotState instance;
+    private Pose2d robotPose = new Pose2d();
 
-    public Rotation2d getAmpAngle() {
-        return ampAngle;
+
+    public static RobotState getInstance() {
+        if (instance == null) instance = new RobotState();
+        return instance;
+      }
+
+    public Rotation2d getAngleToAmp() {
+        return FieldConstants.ampAngle;
+    }
+
+    public boolean isRed() {
+        return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
+    }
+
+    public double getDistanceToSpeaker() {
+        return robotPose.getTranslation().getDistance(isRed() ? FieldConstants.RED_SPEAKER.getTranslation() : FieldConstants.BLUE_SPEAKER.getTranslation());
+    }
+
+    public Rotation2d getAngleToSpeaker() {
+        return robotPose.getTranslation().minus(isRed() ? FieldConstants.RED_SPEAKER.getTranslation() : FieldConstants.BLUE_SPEAKER.getTranslation()).getAngle();
     }
 
     private static final InterpolatingDoubleTreeMap speakerArmAngleMap = new InterpolatingDoubleTreeMap();
     static {
         speakerArmAngleMap.put(1.5, 12.71);
-        speakerArmAngleMap.put(2.0, 21.0);
+        speakerArmAngleMap.put(2.0, 21.00);
         speakerArmAngleMap.put(2.5, 24.89);
         speakerArmAngleMap.put(3.0, 29.00);
         speakerArmAngleMap.put(3.5, 31.20);
@@ -27,9 +50,14 @@ public class RobotState {
         speakerArmAngleMap.put(5.0, 35.00);
 
     }
+
     //TODO: Feed distance from speaker
     public double getShotAngle() {
-        return speakerArmAngleMap.get(0.0);
+        return speakerArmAngleMap.get(getDistanceToSpeaker());
+    }
+
+    public void setRobotPose(Pose2d pose) {
+        robotPose = pose;
     }
 
 }

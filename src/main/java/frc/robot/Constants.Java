@@ -8,6 +8,11 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
+import frc.robot.generated.TunerConstants;
+
 
 /** Add your docs here. */
 public class Constants {
@@ -16,6 +21,12 @@ public class Constants {
         public static final int ID_ArmLeader = 25;
         public static final int ID_ArmFollower = 26;  
         public static final int ID_ArmAbsEncoder = 0;
+
+        public static final double upperLimit = Units.degreesToRadians(130);
+        public static final double lowerLimit = Units.degreesToRadians(-20);
+        public static final double tolerance = Units.degreesToRadians(.5);
+        public static final double maxVelocity = Math.PI;
+        public static final double maxAcceleration = Math.PI / 2;
 
         public static TalonFXConfiguration motorConfig() {
             TalonFXConfiguration m_configuration = new TalonFXConfiguration();
@@ -35,6 +46,12 @@ public class Constants {
 
             return m_configuration;
         }
+    }
+
+    public static final class DriveConstants {
+        public static final double headingAngleTolerance = 2.0;
+        public static final double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
+        public static final double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
     }
 
     public static final class IntakeConstants { 
@@ -57,9 +74,6 @@ public class Constants {
             m_configuration.CurrentLimits.StatorCurrentLimitEnable = true; 
 
             return m_configuration;
-
-
-
         }
     }
 
@@ -86,8 +100,6 @@ public class Constants {
             m_configuration.Slot0.kI = 0;
             m_configuration.Slot0.kD = 0;
             m_configuration.Slot0.kV = .125;
-
-
 
             return m_configuration;
         }
@@ -120,9 +132,6 @@ public class Constants {
             m_configuration.CurrentLimits.StatorCurrentLimitEnable = true; 
 
             return m_configuration;
-
-
-
         } */
     }
 
@@ -131,6 +140,18 @@ public class Constants {
         public static final double leftTriggerMin = 0.3;
         public static final double leftTriggerMid = 0.6;
 
+    }
+
+    public static class FieldConstants {
+
+        public static final Pose2d BLUE_SPEAKER = new Pose2d(Units.inchesToMeters(-1.5 + 12), Units.inchesToMeters(218.42), new Rotation2d(0));
+        public static final Pose2d RED_SPEAKER = new Pose2d(Units.inchesToMeters(652.73 - 12), Units.inchesToMeters(218.42), new Rotation2d(Math.PI));
+        public static final Pose2d BLUE_AMP_FEED = new Pose2d(1.25, 6.62, new Rotation2d(0));
+        public static final Pose2d RED_AMP_FEED = new Pose2d(15.250, 6.62, new Rotation2d(0));
+        public static final double BLUE_AUTO_PENALTY_LINE = 9; // X distance from origin to center of the robot almost fully crossing the midline
+        public static final double RED_AUTO_PENALTY_LINE = 7.4; // X distance from origin to center of the robot almost fully crossing the midline
+
+        public static final Rotation2d ampAngle = new Rotation2d(-Math.PI / 2);
     }
 
 }
