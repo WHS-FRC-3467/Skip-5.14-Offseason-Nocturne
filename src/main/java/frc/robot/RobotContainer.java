@@ -13,6 +13,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -120,6 +121,20 @@ public class RobotContainer {
         // Detect if controllers are missing / Stop multiple warnings
         DriverStation.silenceJoystickConnectionWarning(true);
         
+        // AUTO - Register Named Commands
+        NamedCommands.registerCommand("Intake", m_ArmSubsystem.setStateCommand(Arm.ArmState.STOWED)
+                .until(m_ArmSubsystem.isArmAtState())
+                .andThen(m_IntakeSubsystem.setStateCommand(Intake.State.FWD)
+                        .alongWith(m_StageSubsystem.setStateCommand(Stage.State.INTAKE))
+                        .until(() -> m_StageSubsystem.beambreakSupplier.getAsBoolean())));
+        NamedCommands.registerCommand("ToSubwoofer", m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.SUBWOOFER)
+                .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.SUBWOOFER))
+                .until(() -> (m_ShooterSubsystem.isShooterAtSpeed()
+                        && m_ArmSubsystem.isArmAtState().getAsBoolean())));
+        NamedCommands.registerCommand("Shoot", m_StageSubsystem.setStateCommand(Stage.State.SHOOTING)
+                .until(() -> !m_StageSubsystem.beambreakSupplier.getAsBoolean()));
+        NamedCommands.registerCommand("StopShooter", m_ShooterSubsystem.setStateCommand(ShooterState.STOP));
+
         // Build an auto chooser. This will use Commands.none() as the default option.
         autoChooser = AutoBuilder.buildAutoChooser();
             // Another option that allows you to specify the default auto by its name
@@ -140,9 +155,6 @@ public class RobotContainer {
         speedChooser.addOption("35%", 0.35);
         SmartDashboard.putData("Speed Limit", speedChooser);
 
-        // Set Default Commands
-        m_IntakeSubsystem.setDefaultCommand(m_IntakeSubsystem.setStateCommand(Intake.State.OFF));
-        m_StageSubsystem.setDefaultCommand(m_StageSubsystem.setStateCommand(Stage.State.OFF));
         // Configure the trigger bindings
         configureBindings();
     }
