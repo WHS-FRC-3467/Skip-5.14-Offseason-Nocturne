@@ -23,6 +23,8 @@ public final class Constants {
     public static class OperatorConstants {
         public static final int kDriverControllerPort = 0;
         public static final int kOperatorControllerPort = 1;
+        public static final double triggerThreshold = 0.4;
+
     }
 
     public static class CanConstants {
@@ -92,8 +94,8 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
-        public static final double k_INTAKE_FWD_SPEED = 0.5;
-        public static final double k_INTAKE_REV_SPEED = -0.3;
+        public static final double k_INTAKE_FWD_SPEED = -0.5;
+        public static final double k_INTAKE_REV_SPEED = 0.3;
     }
 
     public static class ShooterConstants {
@@ -125,18 +127,23 @@ public final class Constants {
 
         public static final double kSVolts = 0.5; // Static Gain (volts)
         public static final double kGVolts = 0.4; // Gravity Gain (volts)
-        public static final double kVVoltSecondPerRad = 2.5; // Velocity Gain (volt seconds/radian)
+        public static final double kVVoltSecondPerRad = Math.PI/6; // Velocity Gain (volt seconds/radian) TODO: Try 2.5 AFTER verifying that the arm angles are correct
         public static final double kAVoltSecondSquaredPerRad = .01; // Acceleration Gain (volt seconds^2/radian)
 
         public static final double k_ARM_KP = 18.0; // P Gain - Volts
         public static final double k_ARM_KI = 0.0; // I Gain - Volts
         public static final double k_ARM_KD = 0.2; // D Gain - Volts
 
-        public static final double kMaxVelocityRadPerSecond = 4.0;
-        public static final double kMaxAccelerationRadPerSecSquared = 10.0;
+        public static final double kMaxVelocityRadPerSecond = Math.PI/6; // 4.0
+        public static final double kMaxAccelerationRadPerSecSquared = 1; //10.0
 
-        public static final double k_ARM_ENCODER_OFFSET_RADIANS = 0; // 161.4 deg when measured against the hardstop (stowed)
+        // Observed Arm Offsets
+        // Measured against the hardstop when the Arm is in the STOWED position
+        public static final double kARM_STARTING_OFFSET = Units.degreesToRadians(161.4);
+        public static final double k_ARM_HORIZONTAL_OFFSET_RADIANS = Units.degreesToRadians(180.4); // 161.4 deg when measured against the hardstop (stowed)
 
+        public static final double kDuty_Cycle_Min = 1.0/1025.0;
+        public static final double kDuty_Cycle_Max = 1024.0/1025.0;
     }
 
     public static class PhotonVisionConstants {
