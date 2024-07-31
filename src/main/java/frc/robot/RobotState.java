@@ -9,12 +9,33 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import frc.robot.Constants.FieldConstants;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /** Add your docs here. */
 public class RobotState {
     private static RobotState instance;
     private Pose2d robotPose = new Pose2d();
+
+    @RequiredArgsConstructor
+    @Getter
+    public enum TARGET {
+        NONE(null,null),
+        SPEAKER(Constants.FieldConstants.BLUE_SPEAKER,Constants.FieldConstants.RED_SPEAKER),
+        AMP(Constants.FieldConstants.BLUE_AMP,Constants.FieldConstants.RED_AMP),
+        FEED(Constants.FieldConstants.BLUE_FEED,Constants.FieldConstants.RED_FEED);
+
+        private final Pose2d blueTargetPose;
+        private final Pose2d redTargetPose;
+
+    }
+
+    @Getter
+    @Setter
+    private TARGET target = TARGET.NONE;
 
 
     public static RobotState getInstance() {
@@ -22,21 +43,25 @@ public class RobotState {
         return instance;
       }
 
-    public Rotation2d getAngleToAmp() {
-        return FieldConstants.ampAngle;
-    }
 
-    public boolean isRed() {
-        return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
-    }
+      public Rotation2d getAngleOfTarget() {
+          return (DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getRotation() : target.redTargetPose.getRotation();
+      }
 
-    public double getDistanceToSpeaker() {
-        return robotPose.getTranslation().getDistance(isRed() ? FieldConstants.RED_SPEAKER.getTranslation() : FieldConstants.BLUE_SPEAKER.getTranslation());
-    }
+      //TODO: need to invert
+      public Rotation2d getAngleToTarget() {
+          return robotPose.getTranslation()
+                  .minus((DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getTranslation(): target.redTargetPose.getTranslation())
+                  .getAngle();
+      }
 
-    public Rotation2d getAngleToSpeaker() {
-        return robotPose.getTranslation().minus(isRed() ? FieldConstants.RED_SPEAKER.getTranslation() : FieldConstants.BLUE_SPEAKER.getTranslation()).getAngle();
-    }
+      public double getDistanceToTarget() {
+          return robotPose.getTranslation().getDistance(
+                  (DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getTranslation(): target.redTargetPose.getTranslation());
+      }
+
+
+
 
     private static final InterpolatingDoubleTreeMap speakerArmAngleMap = new InterpolatingDoubleTreeMap();
     static {
@@ -53,11 +78,20 @@ public class RobotState {
 
     //TODO: Feed distance from speaker
     public double getShotAngle() {
-        return speakerArmAngleMap.get(getDistanceToSpeaker());
+        if (target == TARGET.SPEAKER) {
+            return speakerArmAngleMap.get(getDistanceToTarget());
+        } else {
+            return 0.0;
+        } 
     }
 
     public void setRobotPose(Pose2d pose) {
         robotPose = pose;
+    }
+
+    public Command setTargetCommand(TARGET target) {
+        return Commands.startEnd(() -> setTarget(target), () -> setTarget(TARGET.NONE))
+                .withName("Set Robot Target: " + target.toString());
     }
 
 }

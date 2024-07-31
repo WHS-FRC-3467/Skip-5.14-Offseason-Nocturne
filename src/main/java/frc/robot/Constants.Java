@@ -146,12 +146,14 @@ public class Constants {
 
         public static final Pose2d BLUE_SPEAKER = new Pose2d(Units.inchesToMeters(-1.5 + 12), Units.inchesToMeters(218.42), new Rotation2d(0));
         public static final Pose2d RED_SPEAKER = new Pose2d(Units.inchesToMeters(652.73 - 12), Units.inchesToMeters(218.42), new Rotation2d(Math.PI));
-        public static final Pose2d BLUE_AMP_FEED = new Pose2d(1.25, 6.62, new Rotation2d(0));
-        public static final Pose2d RED_AMP_FEED = new Pose2d(15.250, 6.62, new Rotation2d(0));
+        public static final Pose2d BLUE_FEED = new Pose2d(1.25, 6.62, new Rotation2d(0));
+        public static final Pose2d RED_FEED = new Pose2d(15.250, 6.62, new Rotation2d(0));
+        public static final Pose2d BLUE_AMP = new Pose2d(Units.inchesToMeters(72.5),Units.inchesToMeters(323.00),new Rotation2d(Math.PI/2));
+        public static final Pose2d RED_AMP = new Pose2d(Units.inchesToMeters(578.77),Units.inchesToMeters(323.00),new Rotation2d(-Math.PI/2));
         public static final double BLUE_AUTO_PENALTY_LINE = 9; // X distance from origin to center of the robot almost fully crossing the midline
         public static final double RED_AUTO_PENALTY_LINE = 7.4; // X distance from origin to center of the robot almost fully crossing the midline
 
-        public static final Rotation2d ampAngle = new Rotation2d(-Math.PI / 2);
+        public static final Rotation2d ampAngle = new Rotation2d(Math.PI / 2);
     }
 
 }

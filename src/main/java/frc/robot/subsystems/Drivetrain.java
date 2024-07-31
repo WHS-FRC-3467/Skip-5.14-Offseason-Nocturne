@@ -45,7 +45,7 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     public enum State {
         TELEOP,
         HEADING,
-        SHOOTONTHEMOVE;
+        CARDINAL;
 
     }
 
@@ -156,10 +156,13 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
                 this.setControl(fieldCentricFacingAngle
                 .withVelocityX(controllerX * DriveConstants.MaxSpeed)
                 .withVelocityY(controllerY * DriveConstants.MaxSpeed)
-                .withTargetDirection(headingAngle.get()));
+                .withTargetDirection(RobotState.getInstance().getAngleToTarget()));
             }
-            case SHOOTONTHEMOVE -> {
-                this.setControl(fieldCentricFacingAngle);
+            case CARDINAL -> {
+                this.setControl(fieldCentricFacingAngle
+                .withVelocityX(controllerX * DriveConstants.MaxSpeed)
+                .withVelocityY(controllerY * DriveConstants.MaxSpeed)
+                .withTargetDirection(RobotState.getInstance().getAngleOfTarget()));
             }
             default -> {}
         } 
@@ -170,7 +173,7 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
         if (Robot.isReal()) {
             fieldCentricFacingAngle.HeadingController.setPID(25, 10, 2);
         } else {
-            fieldCentricFacingAngle.HeadingController.setPID(3, 0, 0);
+            fieldCentricFacingAngle.HeadingController.setPID(5, 0, 0);
         }
         fieldCentricFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         fieldCentricFacingAngle.HeadingController.setTolerance(Units.degreesToRadians(.5));

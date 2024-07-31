@@ -14,8 +14,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.RobotState.TARGET;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.*;
 
@@ -34,6 +37,8 @@ public class RobotContainer {
   public final Shooter shooter = new Shooter();
   public final Stage stage = new Stage();
 
+  private boolean isHarmonyClimbing = false;
+
   
   
   private void configureBindings() {
@@ -44,12 +49,12 @@ public class RobotContainer {
 
     drivetrain.registerTelemetry(logger::telemeterize);
     
-    //TODO: Add smart collection
-    driverCtrl.leftTrigger(Constants.ControllerConstants.leftTriggerMin).whileTrue(arm.setStateCommand(Arm.State.INTAKE)
-        .alongWith(Commands.waitUntil(arm::atGoal)
-            .andThen(stage.setStateCommand(Stage.State.INTAKE)
+    // TODO: Add smart collection
+    driverCtrl.leftTrigger(Constants.ControllerConstants.leftTriggerMin)
+        .whileTrue(arm.setStateCommand(Arm.State.INTAKE)
+            .alongWith(Commands.waitUntil(arm::atGoal).andThen(stage.setStateCommand(Stage.State.INTAKE)
                 .alongWith(intake.setStateCommand(Intake.State.INTAKE))))
-        .until(() -> stage.hasNote()));
+            .until(() -> stage.hasNote()));
 
 /*     driverCtrl.leftTrigger(Constants.ControllerConstants.leftTriggerMid).whileTrue(
       Commands.startEnd(() -> drivetrain.setHeadingAngle(robotState.getAmpAngle()),drivetrain::clearHeadingAngle)); */
@@ -62,18 +67,28 @@ public class RobotContainer {
     driverCtrl.a().whileTrue(arm.setStateCommand(Arm.State.SUBWOOFER).alongWith(shooter.setStateCommand(Shooter.State.SUBWOOFER)));
 
     driverCtrl.b()
-        .whileTrue(arm.setStateCommand(Arm.State.AMP)
-          .alongWith(shooter.setStateCommand(Shooter.State.AMP))
-          .alongWith(Commands.startEnd(() -> drivetrain.setHeadingAngle(robotState.getAngleToAmp()),drivetrain::clearHeadingAngle)));
+        .whileTrue(robotState.setTargetCommand(TARGET.AMP)
+            .alongWith(arm.setStateCommand(Arm.State.AMP))
+            .alongWith(shooter.setStateCommand(Shooter.State.AMP))
+            .alongWith(drivetrain.setStateCommand(Drivetrain.State.CARDINAL)));
 
     driverCtrl.x()
-        .whileTrue(arm.setStateCommand(Arm.State.LOOKUP)
+        .whileTrue(robotState.setTargetCommand(TARGET.SPEAKER)
+            .alongWith(arm.setStateCommand(Arm.State.LOOKUP))
             .alongWith(shooter.setStateCommand(Shooter.State.SHOOT))
-            .alongWith(Commands.startEnd(() -> drivetrain.setHeadingAngle(robotState.getAngleToSpeaker()),drivetrain::clearHeadingAngle))); // Lookup shot
-    
-    driverCtrl.back().whileTrue(arm.setStateCommand(Arm.State.FEED).alongWith(shooter.setStateCommand(Shooter.State.FEED)));
+            .alongWith(drivetrain.setStateCommand(Drivetrain.State.HEADING))); // Lookup shot
 
+    driverCtrl.back()
+        .whileTrue(robotState.setTargetCommand(TARGET.FEED)
+            .alongWith(arm.setStateCommand(Arm.State.FEED))
+            .alongWith(shooter.setStateCommand(Shooter.State.FEED))
+            .alongWith(drivetrain.setStateCommand(Drivetrain.State.HEADING)));
+
+    //TODO: Remove when done with testing
     driverCtrl.povUp().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
+      
+    //Toggle whether we are harmony climbing or not
+    driverCtrl.povDown().onTrue(Commands.either(Commands.runOnce(()-> isHarmonyClimbing = false) ,Commands.runOnce(()-> isHarmonyClimbing = true) , () -> isHarmonyClimbing));
     
 
   }
