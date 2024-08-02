@@ -61,8 +61,8 @@ public class Arm extends ProfiledPIDSubsystem {
     @RequiredArgsConstructor
     @Getter
     public enum ArmState {
-        STOWED  (()-> -22.0, ()-> 2.0),
-        SUBWOOFER(()-> -20.0, ()-> 2.0),
+        STOWED  (()-> -17.6, ()-> 2.0),
+        SUBWOOFER(()-> -15.5, ()-> 2.0),
         PODIUM  (()-> -2.0, ()-> 0.5),
         WING    (()-> 10.0, ()-> 0.5), // Specific Wing Shot
         AMP     (()-> 90.0, ()-> 0.5),
@@ -70,7 +70,7 @@ public class Arm extends ProfiledPIDSubsystem {
         HARMONY (()-> 100.0, ()-> 1.0),
         AIMING  (()-> 40, ()-> 2.0),      // Dynamic
         MOVING  (()-> 50, ()-> 2.0),      // Dynamic
-        FEED    (()-> 0.0, ()-> 2.0);
+        FEED    (()-> -10.0, ()-> 2.0);
 
         private final DoubleSupplier angleSupplier;
         private final DoubleSupplier toleranceSupplier;
@@ -144,7 +144,7 @@ public class Arm extends ProfiledPIDSubsystem {
         m_armFollow.getConfigurator().apply(talonFXConfigurator);
         m_armFollow.setControl(new Follower(m_armLead.getDeviceID(), true));
 
-        m_armEncoder.setPositionOffset(ArmConstants.k_ARM_HORIZONTAL_OFFSET_RADIANS/(2*Math.PI));
+        //m_armEncoder.setPositionOffset(ArmConstants.k_ARM_HORIZONTAL_OFFSET_RADIANS/(2*Math.PI));
         m_armEncoder.setDutyCycleRange(ArmConstants.kDuty_Cycle_Min, ArmConstants.kDuty_Cycle_Max);
     }
 
@@ -154,7 +154,7 @@ public class Arm extends ProfiledPIDSubsystem {
         // Put the measurement of the arm and state of the arm on shuffleboard
         SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
         SmartDashboard.putString("Arm state", getM_ArmState().toString());
-        SmartDashboard.putNumber("Arm Angle Corrected", getMeasurement());
+        SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(getMeasurement()));
         SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
         
         m_controller.setTolerance(m_ArmState.getTolerance());

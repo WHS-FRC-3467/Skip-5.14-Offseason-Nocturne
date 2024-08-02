@@ -88,7 +88,7 @@ public class Intake extends SubsystemBase {
         
         m_intakeFollow.getConfigurator().apply(limitConfigs);
         m_intakeFollow.getConfigurator().apply(outputConfigs);
-        m_intakeFollow.setControl(new Follower(m_intakeLead.getDeviceID(), true));
+        m_intakeFollow.setControl(new Follower(m_intakeLead.getDeviceID(), false));
     }
 
     @Override

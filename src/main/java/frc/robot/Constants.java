@@ -94,7 +94,7 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
-        public static final double k_INTAKE_FWD_SPEED = -0.5;
+        public static final double k_INTAKE_FWD_SPEED = -0.6;
         public static final double k_INTAKE_REV_SPEED = 0.3;
     }
 
@@ -140,7 +140,7 @@ public final class Constants {
         // Observed Arm Offsets
         // Measured against the hardstop when the Arm is in the STOWED position
         public static final double kARM_STARTING_OFFSET = Units.degreesToRadians(161.4);
-        public static final double k_ARM_HORIZONTAL_OFFSET_RADIANS = Units.degreesToRadians(180.4); // 161.4 deg when measured against the hardstop (stowed)
+        public static final double k_ARM_HORIZONTAL_OFFSET_RADIANS = Units.degreesToRadians(180.4); // 180.4 deg when measured against the hardstop (stowed)
 
         public static final double kDuty_Cycle_Min = 1.0/1025.0;
         public static final double kDuty_Cycle_Max = 1024.0/1025.0;

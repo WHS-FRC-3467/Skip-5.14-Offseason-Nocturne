@@ -125,7 +125,8 @@ public class Shooter extends SubsystemBase {
         
         // set velocity according to state, add 0.5 V to overcome gravity
         if (m_ShooterState == ShooterState.STOP) {
-            m_shooterLeft.setControl(m_neutralOut);
+            m_shooterLeft.set(0.0);
+            m_shooterRight.set(0.0);
         } else {
             // create a velocity closed-loop request, voltage output, slot 0 configs
             m_shooterRight.setControl(m_request.withVelocity(m_ShooterState.getRightStateOutput()).withFeedForward(0.5));
