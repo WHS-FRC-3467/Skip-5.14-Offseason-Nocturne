@@ -31,6 +31,8 @@ import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Subsystems.Shooter.ShooterState;
+import frc.robot.Util.ShooterPreset;
+import frc.robot.Util.VisionLookUpTable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -62,13 +64,13 @@ public class Arm extends ProfiledPIDSubsystem {
     @Getter
     public enum ArmState {
         STOWED  (()-> -17.6, ()-> 2.0),
-        SUBWOOFER(()-> -15.5, ()-> 2.0),
+        SUBWOOFER(()-> -7.6, ()-> 2.0),
         PODIUM  (()-> -2.0, ()-> 0.5),
         WING    (()-> 10.0, ()-> 0.5), // Specific Wing Shot
         AMP     (()-> 90.0, ()-> 0.5),
         CLIMB   (()-> 95.0, ()-> 1.0),
         HARMONY (()-> 100.0, ()-> 1.0),
-        AIMING  (()-> 40, ()-> 2.0),      // Dynamic
+        AIMING  (()-> 0, ()-> 1.0),      // Dynamic - Used for aiming - tje angle supplier is just a filler value
         MOVING  (()-> 50, ()-> 2.0),      // Dynamic
         FEED    (()-> -10.0, ()-> 2.0);
 
@@ -93,6 +95,9 @@ public class Arm extends ProfiledPIDSubsystem {
     ArmState m_FutureArm = ArmState.STOWED; // May be marked for depreciation
 
     public BooleanSupplier isAtState = ()-> false;
+
+    // Distance for aiming
+    public DoubleSupplier m_distance = ()-> -0.1;
 
     private final NeutralOut m_neutral = new NeutralOut();
 
@@ -158,8 +163,18 @@ public class Arm extends ProfiledPIDSubsystem {
         SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
         
         m_controller.setTolerance(m_ArmState.getTolerance());
-        m_controller.setGoal(Units.degreesToRadians(m_ArmState.getStateOutput()));
-        useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
+        if ((m_ArmState == ArmState.AIMING)) {
+            // If distance is less than 0 then distance value for aiming is invalid
+            if (m_distance.getAsDouble() > 0.0) {
+                VisionLookUpTable setpoints = new VisionLookUpTable();
+                ShooterPreset m_shot = setpoints.getShooterPreset(m_distance.getAsDouble());
+                m_controller.setGoal(Units.degreesToRadians(m_shot.getArmAngle()));
+                useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
+            }
+        } else {
+            m_controller.setGoal(Units.degreesToRadians(m_ArmState.getStateOutput()));
+            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());     
+        }
 
     }
 
@@ -199,5 +214,13 @@ public class Arm extends ProfiledPIDSubsystem {
     public Command setStateCommand(ArmState state) {
         return startEnd(() -> this.m_ArmState = state, () -> this.m_ArmState = ArmState.STOWED);
 
+    }
+
+    /*
+     * When aiming, setStateCommand() to AIMING for Arm and Shooter
+     * At the same time, setDistanceToTarget() for Arm and Shooter equal to distance reported by PhotonVision
+     */
+    public Command setDistanceToTarget(double distance) {
+        return startEnd(() -> this.m_distance = ()-> distance, () -> this.m_distance = () -> -0.1);
     }
 }

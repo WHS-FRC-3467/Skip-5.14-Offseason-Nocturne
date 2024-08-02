@@ -22,8 +22,11 @@ import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 //import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Subsystems.Arm.ArmState;
 import frc.robot.Util.RobotState;
+import frc.robot.Util.ShooterPreset;
 import frc.robot.Util.TunableNumber;
+import frc.robot.Util.VisionLookUpTable;
 //import frc.robot.sim.PhysicsSim;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +50,8 @@ public class Shooter extends SubsystemBase {
         SUBWOOFER(()-> 27.0, ()-> 27.0),
         SHOOT   (()-> 70.0, ()-> 40.0), // Default
         FEED    (()-> 28.0, ()-> 28.0),
-        REVERSE (()-> Constants.ShooterConstants.k_SHOOTER_REV_VELOCITY, ()-> Constants.ShooterConstants.k_SHOOTER_REV_VELOCITY); // Hopefully never have to use this irl
+        REVERSE (()-> Constants.ShooterConstants.k_SHOOTER_REV_VELOCITY, ()-> Constants.ShooterConstants.k_SHOOTER_REV_VELOCITY), // Hopefully never have to use this irl
+        AIMING  (()-> 50.0, ()-> 45.0); // Values are filler
 
         private final DoubleSupplier leftSupplier;
         private final DoubleSupplier rightSupplier;
@@ -64,6 +68,8 @@ public class Shooter extends SubsystemBase {
     @Getter
     @Setter
     ShooterState m_ShooterState = ShooterState.STOP;
+
+    DoubleSupplier m_distance = () -> -0.1;
 
     // Initialize devices
     TalonFX m_shooterLeft = new TalonFX(CanConstants.ID_ShooterLeft);
@@ -127,6 +133,14 @@ public class Shooter extends SubsystemBase {
         if (m_ShooterState == ShooterState.STOP) {
             m_shooterLeft.set(0.0);
             m_shooterRight.set(0.0);
+        } else if ((m_ShooterState == ShooterState.AIMING)) {
+            // If distance is less than 0 then distance value for aiming is invalid
+            if (m_distance.getAsDouble() > 0.0) {
+                VisionLookUpTable setpoints = new VisionLookUpTable();
+                ShooterPreset m_shot = setpoints.getShooterPreset(m_distance.getAsDouble());
+                m_shooterRight.setControl(m_request.withVelocity(m_shot.getRightShooterSpeed()).withFeedForward(0.5));
+                m_shooterLeft.setControl(m_request.withVelocity(m_shot.getLeftShooterSpeed()).withFeedForward(0.5));
+            }
         } else {
             // create a velocity closed-loop request, voltage output, slot 0 configs
             m_shooterRight.setControl(m_request.withVelocity(m_ShooterState.getRightStateOutput()).withFeedForward(0.5));
@@ -152,5 +166,9 @@ public class Shooter extends SubsystemBase {
         // Inline construction of command goes here.
         // Subsystem::RunOnce implicitly requires `this` subsystem.
         return startEnd(() -> this.m_ShooterState = state, ()-> this.m_ShooterState = ShooterState.STOP);
-      }
+    }
+
+    public Command setDistanceToTarget(double distance) {
+        return startEnd(() -> this.m_distance = ()-> distance, () -> this.m_distance = () -> -0.1);
+    }
 }
