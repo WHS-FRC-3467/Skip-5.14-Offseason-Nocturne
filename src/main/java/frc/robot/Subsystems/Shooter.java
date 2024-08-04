@@ -97,9 +97,16 @@ public class Shooter extends SubsystemBase {
         
         var talonFXConfigurator = new TalonFXConfiguration();
         // enable stator current limit
-        talonFXConfigurator.CurrentLimits.StatorCurrentLimit = 120;
+        talonFXConfigurator.CurrentLimits.StatorCurrentLimit = 70;
         talonFXConfigurator.CurrentLimits.StatorCurrentLimitEnable = true;
-
+        // supply current limit of 60 amps for shooter talons
+        talonFXConfigurator.CurrentLimits.SupplyCurrentLimit = 60;
+        talonFXConfigurator.CurrentLimits.SupplyCurrentThreshold = 80; // If we exceed 80 amps
+        talonFXConfigurator.CurrentLimits.SupplyTimeThreshold = 0.1; // For at least 0.1 second
+        talonFXConfigurator.CurrentLimits.SupplyCurrentLimitEnable = true;
+        // set peak voltage
+        talonFXConfigurator.Voltage.PeakForwardVoltage = 12.0;
+        talonFXConfigurator.Voltage.PeakReverseVoltage = 0.0; // Don't go in reverse
         // Set brake as neutralmodevalue
         talonFXConfigurator.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
@@ -136,8 +143,8 @@ public class Shooter extends SubsystemBase {
         } else if ((m_ShooterState == ShooterState.AIMING)) {
             // If distance is less than 0 then distance value for aiming is invalid
             if (m_distance.getAsDouble() > 0.0) {
-                VisionLookUpTable setpoints = new VisionLookUpTable();
-                ShooterPreset m_shot = setpoints.getShooterPreset(m_distance.getAsDouble());
+                VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
+                ShooterPreset m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
                 m_shooterRight.setControl(m_request.withVelocity(m_shot.getRightShooterSpeed()).withFeedForward(0.5));
                 m_shooterLeft.setControl(m_request.withVelocity(m_shot.getLeftShooterSpeed()).withFeedForward(0.5));
             }

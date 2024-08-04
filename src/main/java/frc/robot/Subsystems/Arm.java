@@ -71,7 +71,7 @@ public class Arm extends ProfiledPIDSubsystem {
         CLIMB   (()-> 95.0, ()-> 1.0),
         HARMONY (()-> 100.0, ()-> 1.0),
         AIMING  (()-> 0, ()-> 1.0),      // Dynamic - Used for aiming - tje angle supplier is just a filler value
-        MOVING  (()-> 50, ()-> 2.0),      // Dynamic
+        TUNING  (()-> 50, ()-> 2.0),      // Dynamic
         FEED    (()-> -10.0, ()-> 2.0);
 
         private final DoubleSupplier angleSupplier;
@@ -133,9 +133,14 @@ public class Arm extends ProfiledPIDSubsystem {
 
         // https://v6.docs.ctr-electronics.com/en/latest/docs/hardware-reference/talonfx/improving-performance-with-current-limits.html
         var talonFXConfigurator = new TalonFXConfiguration();
-        // enable stator current limit
-        talonFXConfigurator.CurrentLimits.StatorCurrentLimit = 120;
-        talonFXConfigurator.CurrentLimits.StatorCurrentLimitEnable = true;
+        /* Arm: enable stator current limit */
+        talonFXConfigurator.CurrentLimits.StatorCurrentLimit = 60; // Limit stator to 60 amps
+        talonFXConfigurator.CurrentLimits.StatorCurrentLimitEnable = true; // enable the limiting
+        /* Arm Supply Current limit of 30 amps */
+        talonFXConfigurator.CurrentLimits.SupplyCurrentLimit = 30;
+        talonFXConfigurator.CurrentLimits.SupplyCurrentThreshold = 85; // If we exceed 50 amps
+        talonFXConfigurator.CurrentLimits.SupplyTimeThreshold = 0.1; // For at least 0.1 second
+        talonFXConfigurator.CurrentLimits.SupplyCurrentLimitEnable = true; // enable supply current limiting
 
         // Set BRAKE as neutralmodevalue - USE COAST WHEN TESTING FOR OFFSETS - KEEP THE ROBOT DISABLED
         talonFXConfigurator.MotorOutput.NeutralMode = NeutralModeValue.Coast;
@@ -149,7 +154,6 @@ public class Arm extends ProfiledPIDSubsystem {
         m_armFollow.getConfigurator().apply(talonFXConfigurator);
         m_armFollow.setControl(new Follower(m_armLead.getDeviceID(), true));
 
-        //m_armEncoder.setPositionOffset(ArmConstants.k_ARM_HORIZONTAL_OFFSET_RADIANS/(2*Math.PI));
         m_armEncoder.setDutyCycleRange(ArmConstants.kDuty_Cycle_Min, ArmConstants.kDuty_Cycle_Max);
     }
 
@@ -166,8 +170,8 @@ public class Arm extends ProfiledPIDSubsystem {
         if ((m_ArmState == ArmState.AIMING)) {
             // If distance is less than 0 then distance value for aiming is invalid
             if (m_distance.getAsDouble() > 0.0) {
-                VisionLookUpTable setpoints = new VisionLookUpTable();
-                ShooterPreset m_shot = setpoints.getShooterPreset(m_distance.getAsDouble());
+                VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
+                ShooterPreset m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
                 m_controller.setGoal(Units.degreesToRadians(m_shot.getArmAngle()));
                 useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
             }
