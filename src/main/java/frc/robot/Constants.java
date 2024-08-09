@@ -86,7 +86,7 @@ public final class Constants {
     public static class RobotConstants {
         public static final boolean kIsTuningMode = true;
         public static final boolean kIsDriveTuningMode = true;
-        public static final boolean kIsArmTuningMode = true;
+        public static final boolean kIsArmTuningMode = true; // Only make this true for arm testing thorugh shuffleboard
         public static final boolean kIsIntakeTuningMode = true;
         public static final boolean kIsStageTuningMode = true;
         public static final boolean kIsShooterTuningMode = true;
@@ -106,7 +106,7 @@ public final class Constants {
 
         public static final double kSVolts = 0.1;
         public static final double kVVoltSecondsPerRotation = 0.125;
-        public static final double kP = 0.03;
+        public static final double kP = 0.3;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
     }
@@ -127,15 +127,15 @@ public final class Constants {
 
         public static final double kSVolts = 0.5; // Static Gain (volts)
         public static final double kGVolts = 0.4; // Gravity Gain (volts)
-        public static final double kVVoltSecondPerRad = Math.PI/6; // Velocity Gain (volt seconds/radian) TODO: Try 2.5 AFTER verifying that the arm angles are correct
+        public static final double kVVoltSecondPerRad = 2.5; // Velocity Gain (volt seconds/radian) TODO: Try 2.5 AFTER verifying that the arm angles are correct
         public static final double kAVoltSecondSquaredPerRad = .01; // Acceleration Gain (volt seconds^2/radian)
 
         public static final double k_ARM_KP = 18.0; // P Gain - Volts
         public static final double k_ARM_KI = 0.0; // I Gain - Volts
         public static final double k_ARM_KD = 0.2; // D Gain - Volts
 
-        public static final double kMaxVelocityRadPerSecond = Math.PI/6; // 4.0
-        public static final double kMaxAccelerationRadPerSecSquared = 1; //10.0
+        public static final double kMaxVelocityRadPerSecond = 4.0; // 4.0
+        public static final double kMaxAccelerationRadPerSecSquared = 10.0; //10.0
 
         // Observed Arm Offsets
         // Measured against the hardstop when the Arm is in the STOWED position

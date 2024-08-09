@@ -32,6 +32,7 @@ import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Subsystems.Shooter.ShooterState;
 import frc.robot.Util.ShooterPreset;
+import frc.robot.Util.TunableNumber;
 import frc.robot.Util.VisionLookUpTable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -63,16 +64,15 @@ public class Arm extends ProfiledPIDSubsystem {
     @RequiredArgsConstructor
     @Getter
     public enum ArmState {
-        STOWED  (()-> -17.6, ()-> 2.0),
-        SUBWOOFER(()-> -7.6, ()-> 2.0),
-        PODIUM  (()-> -2.0, ()-> 0.5),
-        WING    (()-> 10.0, ()-> 0.5), // Specific Wing Shot
-        AMP     (()-> 90.0, ()-> 0.5),
-        CLIMB   (()-> 95.0, ()-> 1.0),
-        HARMONY (()-> 100.0, ()-> 1.0),
+        STOWED  (()-> -17.0, ()-> 2.0),
+        SUBWOOFER(()-> -7.6, ()-> 1.0),
+        PODIUM  (()-> 6.0, ()-> 0.4),
+        WING    (()-> 10.0, ()-> 0.4), // Specific Wing Shot
+        AMP     (()-> 77.0, ()-> 0.4),
+        CLIMB   (()-> 71.0, ()-> 1),
+        HARMONY (()-> 105.0, ()-> 1),
         AIMING  (()-> 0, ()-> 1.0),      // Dynamic - Used for aiming - tje angle supplier is just a filler value
-        TUNING  (()-> 50, ()-> 2.0),      // Dynamic
-        FEED    (()-> -10.0, ()-> 2.0);
+        FEED    (()-> -3.0, ()-> 2.0);
 
         private final DoubleSupplier angleSupplier;
         private final DoubleSupplier toleranceSupplier;
@@ -98,6 +98,14 @@ public class Arm extends ProfiledPIDSubsystem {
 
     // Distance for aiming
     public DoubleSupplier m_distance = ()-> -0.1;
+
+    // Limit the amount of degrees that the arm can go
+    private double lowerLimit = -18.0;
+    private double upperLimit = 106.0;
+
+    // Arm Angle Adjustment via Shuffleboard
+    @Getter
+    private TunableNumber tempDegree = new TunableNumber("Set Arm To Degrees", 0.0);
 
     private final NeutralOut m_neutral = new NeutralOut();
 
@@ -165,9 +173,24 @@ public class Arm extends ProfiledPIDSubsystem {
         SmartDashboard.putString("Arm state", getM_ArmState().toString());
         SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(getMeasurement()));
         SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
+        SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
         
-        m_controller.setTolerance(m_ArmState.getTolerance());
-        if ((m_ArmState == ArmState.AIMING)) {
+       
+        // If testing arm angle through Tunablenumber tempDegree, set the arm to the manually desired angle
+        if (Constants.RobotConstants.kIsArmTuningMode) {
+            // Prevent arm from going too low or high
+            if (tempDegree.get() > upperLimit) {
+                tempDegree.set(upperLimit);
+            } else if (tempDegree.get() < lowerLimit) {
+                tempDegree.set(lowerLimit);
+            }
+            // Apply controls
+            m_controller.setTolerance(m_ArmState.getTolerance()); 
+            m_controller.setGoal(Units.degreesToRadians(tempDegree.get()));
+            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
+        }
+        
+        else if ((m_ArmState == ArmState.AIMING)) {
             // If distance is less than 0 then distance value for aiming is invalid
             if (m_distance.getAsDouble() > 0.0) {
                 VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
@@ -176,6 +199,7 @@ public class Arm extends ProfiledPIDSubsystem {
                 useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
             }
         } else {
+            // The "regular" case
             m_controller.setGoal(Units.degreesToRadians(m_ArmState.getStateOutput()));
             useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());     
         }
@@ -209,6 +233,16 @@ public class Arm extends ProfiledPIDSubsystem {
         isAtState = ()-> false;
         return ()-> false;
     }
+
+    public BooleanSupplier isArmAtTempSetpoint() {
+        if (MathUtil.isNear(Math.toRadians(tempDegree.get()), getMeasurement(), Math.toRadians(m_ArmState.getTolerance()))) {
+            isAtState = ()-> true;
+            return ()-> true;
+        }
+        isAtState = ()-> false;
+        return ()-> false;
+    }
+
 
     /* return a command that:
     *  1. Change the Armstate

@@ -145,8 +145,8 @@ public class Shooter extends SubsystemBase {
             if (m_distance.getAsDouble() > 0.0) {
                 VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
                 ShooterPreset m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
-                m_shooterRight.setControl(m_request.withVelocity(m_shot.getRightShooterSpeed()).withFeedForward(0.5));
-                m_shooterLeft.setControl(m_request.withVelocity(m_shot.getLeftShooterSpeed()).withFeedForward(0.5));
+                m_shooterRight.setControl(m_request.withVelocity(m_shot.getRightShooterSpeed()).withFeedForward(0));
+                m_shooterLeft.setControl(m_request.withVelocity(m_shot.getLeftShooterSpeed()).withFeedForward(0));
             }
         } else {
             // create a velocity closed-loop request, voltage output, slot 0 configs
