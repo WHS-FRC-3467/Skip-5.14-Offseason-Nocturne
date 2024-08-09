@@ -8,6 +8,8 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import java.util.function.Supplier;
 
+import org.photonvision.PhotonCamera;
+
 import com.ctre.phoenix6.Utils;
 // import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
@@ -45,6 +47,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Vision.Limelight;
+import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
 import lombok.Getter;
 import lombok.Setter;
@@ -82,6 +85,8 @@ public class RobotContainer {
     private final Arm m_ArmSubsystem;
     private final Limelight m_LimeLight = new Limelight("ll");
     private final Superstructure m_Superstructure;
+    private final PhotonVision m_bottomLeftCam;
+    private final PhotonVision m_topRightCam;
     // Instantiate driver and operator controllers
     CommandXboxPS5Controller m_driverController = new CommandXboxPS5Controller(OperatorConstants.kDriverControllerPort);
     CommandXboxPS5Controller m_operatorController = new CommandXboxPS5Controller(OperatorConstants.kOperatorControllerPort);
@@ -117,7 +122,8 @@ public class RobotContainer {
         m_ShooterSubsystem = Shooter.getInstance();
         m_Superstructure = Superstructure.getInstance();
         m_Drivetrain = CommandSwerveDrivetrain.getInstance();
-        
+        m_bottomLeftCam = new PhotonVision(m_Drivetrain, 0);
+        m_topRightCam = new PhotonVision(m_Drivetrain, 1);
         // Detect if controllers are missing / Stop multiple warnings
         DriverStation.silenceJoystickConnectionWarning(true);
         

@@ -127,15 +127,15 @@ public final class Constants {
 
         public static final double kSVolts = 0.5; // Static Gain (volts)
         public static final double kGVolts = 0.4; // Gravity Gain (volts)
-        public static final double kVVoltSecondPerRad = 2.5; // Velocity Gain (volt seconds/radian) TODO: Try 2.5 AFTER verifying that the arm angles are correct
+        public static final double kVVoltSecondPerRad = 2.5; // Velocity Gain (volt seconds/radian)
         public static final double kAVoltSecondSquaredPerRad = .01; // Acceleration Gain (volt seconds^2/radian)
 
         public static final double k_ARM_KP = 18.0; // P Gain - Volts
         public static final double k_ARM_KI = 0.0; // I Gain - Volts
-        public static final double k_ARM_KD = 0.2; // D Gain - Volts
+        public static final double k_ARM_KD = 0.21; // D Gain - Volts
 
-        public static final double kMaxVelocityRadPerSecond = 4.0; // 4.0
-        public static final double kMaxAccelerationRadPerSecSquared = 10.0; //10.0
+        public static final double kMaxVelocityRadPerSecond = 4.0;
+        public static final double kMaxAccelerationRadPerSecSquared = 10.0;
 
         // Observed Arm Offsets
         // Measured against the hardstop when the Arm is in the STOWED position

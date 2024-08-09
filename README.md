@@ -10,23 +10,24 @@ Nocturne 2024 Offseason Bot
 - Development, Testing, and Stable will be used to determine the progress for subsystems/commands/features
 
 # Development
+- TunableNumber constants for tuning shooter Velocity and Arm PID via the Shuffleboard.
 - Limelight
 - Photonvision and April Tag Location
-- RobotState - Setpoints enumeration (that combines Arm + Shooter state machines)
-- Superstructure (for LEDs)
+- RobotState + Superstructure (for LEDs)
 
 # Testing/Ready For Testing
-- Intaking (Intake + Stage Subsystem) and Eject
-- Basic arm functionality
-- Driver Controls
-- Basic shooter functionality
+- Arm PID
 
 # Stable
 - Features that work, but may be put back in development again if it needs updating
 - Drivetrain (TELEOP mode)
+- Intaking (Intake + Stage Subsystem) and Eject
+- Basic arm functionality including Arm to Angle via Shuffleboard
+- Driver Controls
+- Basic shooter functionality
 
 # To be Started
-- TunableNumber constants for tuning shooter Velocity and Arm PID via the Shuffleboard.
+- Manual Arm control
 - Note Following
 - Trap Subsystem
 - Look and Shoot

@@ -38,7 +38,7 @@ public class Limelight extends SubsystemBase {
     public void periodic() {
 
         // Smart Dashboard stuff goes here
-
+        SmartDashboard.putBoolean("Limelight has target", hasTarget());
         // Basic Targeting Data
         //NetworkTableInstance.getDefault().getTable(m_llName).getEntry("<variablename>").getDouble(0);
         // variable name can be tv, tx, ty, txnc  ... etc

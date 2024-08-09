@@ -33,6 +33,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.PhotonVisionConstants;
 import frc.robot.Subsystems.CommandSwerveDrivetrain;
@@ -82,6 +83,8 @@ public class PhotonVision extends SubsystemBase {
         // MUST ALWAYS check if the result has a target before getting targets or else you may get a null pointer exception.
         // ALso must use the same result in every subsequent call in that loop
         hasTargets = result.hasTargets();
+            // Tell shuffleboard whether cameras see an apriltag
+        SmartDashboard.putBoolean(cam_name + " has target ", hasTargets);
         // If camera has target, then get a list of tracked targets from a pipeline result.
         // Contains info such as yaw, pitch, area, and robot relative pose
         if (hasTargets) {
