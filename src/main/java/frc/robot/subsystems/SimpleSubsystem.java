@@ -48,6 +48,6 @@ public class SimpleSubsystem extends SubsystemBase {
   }
 
   public Command setStateCommand(State state) {
-    return runOnce(() -> this.state = state);
+    return startEnd(() -> this.state = state, () -> this.state = State.OFF);
   }
 }
