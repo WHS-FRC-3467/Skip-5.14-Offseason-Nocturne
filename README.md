@@ -10,29 +10,43 @@ Nocturne 2024 Offseason Bot
 - Development, Testing, and Stable will be used to determine the progress for subsystems/commands/features
 
 # Development
-- Intaking note Command Files
-- Driver Controls
-- Arm Subsystem
-- intakeNote command
-- Shooter Subsystem
-- Limelight
-- Photonvision and April Tag Location
-- Stage Subsystem
+- Recode Arm to match updated ComplexSubsystem
 
 # Testing/Ready For Testing
-- Intake Default Command + Subsystem
-- Drivetrain (once driver controls are ready)
+- Arm PID
 
 # Stable
 - Features that work, but may be put back in development again if it needs updating
+- Drivetrain (TELEOP mode)
+- Intaking (Intake + Stage Subsystem) and Eject
+- Basic arm functionality including Arm to Angle via Shuffleboard (Noah's-Branch version)
+- Driver Controls
+- Basic shooter functionality
 
 # To be Started
-- TunableNumber constants for tuning shooter Velocity PID via the Shuffleboard.
-- Setpoints enumeration
+- Manual Arm control
 - Note Following
 - Trap Subsystem
 - Look and Shoot
 - Shoot & Move
+- Pathplanner Autos
+
+# Driver Controls
+- The two joysticks: Drive robot
+- Hold Left Bumper: Turtle Mode (Drivetrain) for fine adjustments
+- Press B: Start Shooter
+- Press A: Stop Shooter
+- Press X: Manual Intake
+- Press Y: Manual Shoot Note (stage)
+- Hold Left Trigger: Regular Intake
+- Hold Right Trigger: Eject Note (manual outtake)
+
+# Operator Controls
+- Press DPad Left: Shooter + Arm to Podium position
+- Press DPad Up: Shooter + Arm to AMP position
+- Press DPad Right: Arm to Harmony position
+- Press DPad Down: Arm to Subwoofer position
+- Drivetrain testing (see RobotContainer)
 
 # CTRE Swerve Example
 
