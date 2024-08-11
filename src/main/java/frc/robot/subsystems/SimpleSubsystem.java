@@ -22,14 +22,10 @@ public class SimpleSubsystem extends SubsystemBase {
   @RequiredArgsConstructor
   @Getter
   public enum State {
-    ON(() -> 1.0),
-    OFF(() -> 0.0);
+    ON(1.0),
+    OFF(0.0);
 
-    private final DoubleSupplier outputSupplier;
-
-    private double getStateOutput() {
-      return outputSupplier.getAsDouble();
-    }
+    private final double output;
   }
 
   @Getter
@@ -53,7 +49,7 @@ public class SimpleSubsystem extends SubsystemBase {
     if (state == State.OFF) {
       m_motor.setControl(m_brake);
     } else {
-      m_motor.setControl(m_percent.withOutput(state.getStateOutput()));
+      m_motor.setControl(m_percent.withOutput(state.getOutput()));
     }
   }
 
