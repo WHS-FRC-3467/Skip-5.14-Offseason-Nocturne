@@ -33,6 +33,7 @@ public class Arm extends SubsystemBase {
     STOW(() -> -20),
     INTAKE(() -> -18.0),
     SUBWOOFER(() -> -18.0),
+    UNJAM(() -> 0),
     AMP(() -> 74.0),
     FEED(() -> -9.0),
     CLIMB(() -> 69.0),

@@ -15,36 +15,73 @@ public class Superstructure extends SubsystemBase {
   @RequiredArgsConstructor
   @Getter
   public enum State {
-    OFF(0.0),
-    INTAKE(0.45),
-    EJECT(1.0),
-    FEED(.3),
-    OUTTAKE(-1.0);
+    STOWED,
+    INTAKE,
+    AMP,
+    SUBWOOFER,
+    SPEAKER,
+    FEED,
+    SHOOT,
+    CLIMB,
+    UNJAM,
 
-    private final double outputSupplier;
+
   }
 
   @Getter
   @Setter
-  private State state = State.OFF;
+  private State state = State.STOWED;
+
+  private Arm arm;
+  private Drivetrain drivetrain;
+  private Intake intake;
+  private Shooter shooter;
+  private Stage stage;
 
 
   /** Creates a new StageSubsystem. */
-  public Superstructure() {
-
-
+  public Superstructure(Arm arm, Drivetrain drivetrain, Intake intake, Shooter shooter, Stage stage) {
+    this.arm = arm;
+    this.drivetrain = drivetrain;
+    this.intake = intake;
+    this.shooter = shooter;
+    this.stage = stage;
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    switch (state) {
+      case STOWED:
+        arm.setState(Arm.State.STOW);
+        drivetrain.setState(Drivetrain.State.TELEOP);
+        intake.setState(Intake.State.OFF);
+        shooter.setState(Shooter.State.OFF);
+        stage.setState(Stage.State.OFF);
+        break;
 
+      case INTAKE:
+        arm.setState(Arm.State.INTAKE);
+        if (arm.atGoal() && !stage.hasNote()) {
+
+            intake.setState(Intake.State.INTAKE);
+            stage.setState(Stage.State.OFF);
+
+          
+
+        } else {
+        intake.setState(Intake.State.OFF);
+        shooter.setState(Shooter.State.OFF);
+        stage.setState(Stage.State.OFF);
+          
+        }
+
+    }
 
   }
 
 
-
   public Command setStateCommand(State state) {
-    return startEnd(() -> setState(state),() -> setState(State.OFF));
+    return startEnd(() -> setState(state),() -> setState(State.STOWED));
   }
 }
