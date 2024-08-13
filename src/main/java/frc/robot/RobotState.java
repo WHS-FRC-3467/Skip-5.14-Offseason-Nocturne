@@ -73,7 +73,6 @@ public class RobotState {
         speakerArmAngleMap.put(4.0, 32.50);
         speakerArmAngleMap.put(4.5, 34.00);
         speakerArmAngleMap.put(5.0, 35.00);
-
     }
 
     public double getShotAngle() {

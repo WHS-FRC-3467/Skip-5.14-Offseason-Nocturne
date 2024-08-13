@@ -13,6 +13,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
@@ -69,7 +70,7 @@ public class Arm extends SubsystemBase {
 
   private DutyCycleEncoder m_encoder = new DutyCycleEncoder(ArmConstants.ID_ArmAbsEncoder);
 
-  //private Debouncer m_debounce = new Debouncer(.1);
+  private Debouncer m_debounce = new Debouncer(.1);
   
 
 
@@ -107,9 +108,11 @@ public class Arm extends SubsystemBase {
 
   }
 
+  
   public boolean atGoal() {
     //return m_debounce.calculate(MathUtil.isNear(goalAngle, m_encoder.getDistance(), ArmConstants.tolerance));
-    return pidController.atGoal();
+    return m_debounce.calculate(pidController.atGoal());
+    //return pidController.atGoal();
   }
 
   public Command setStateCommand(State state) {
