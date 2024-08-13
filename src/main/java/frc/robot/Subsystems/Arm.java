@@ -4,8 +4,6 @@
 
 package frc.robot.Subsystems;
 
-import com.ctre.phoenix6.hardware.CANcoder;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -25,12 +23,13 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
+
 import frc.robot.Constants;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
-import frc.robot.Subsystems.Shooter.ShooterState;
 import frc.robot.Util.ShooterPreset;
 import frc.robot.Util.TunableNumber;
 import frc.robot.Util.VisionLookUpTable;
@@ -40,19 +39,15 @@ import lombok.Setter;
 
 /* 
  * ArmSubsystem - Subsystem to control all Arm motion using a Trapezoidal Profiled PID controller
- * 
- * For more details on how this works, see:
- * https://docs.wpilib.org/en/stable/docs/software/commandbased/profilepid-subsystems-commands.html
  *
  */
-public class Arm extends ProfiledPIDSubsystem {
+public class Arm extends SubsystemBase {
 
     /** Arm subsystem singleton. For superstructure. */
     private static Arm instance = null;
 
     TalonFX m_armLead = new TalonFX(CanConstants.ID_ArmLeader);
     TalonFX m_armFollow = new TalonFX(CanConstants.ID_ArmFollower);
-    //CANcoder m_armEncoder  = new CANcoder(DIOConstants.k_ARM_ENCODER_ID);
     DutyCycleEncoder m_armEncoder = new DutyCycleEncoder(DIOConstants.k_ARM_ENCODER_ID);
 
     private final ArmFeedforward m_feedforward = new ArmFeedforward(
@@ -95,23 +90,26 @@ public class Arm extends ProfiledPIDSubsystem {
     ArmState m_FutureArm = ArmState.STOWED; // May be marked for depreciation
 
     public BooleanSupplier isAtState = ()-> false;
-
-    // Distance for aiming
+        // Distance for aiming - if negative distance, then it will not aim
     public DoubleSupplier m_distance = ()-> -0.1;
-
-    // Limit the amount of degrees that the arm can go
+        // Limit the amount of degrees that the arm can go
     private double lowerLimit = -18.0;
     private double upperLimit = 106.0;
-
-    // Arm Angle Adjustment via Shuffleboard
+        // Arm Angle Adjustment via Shuffleboard
     @Getter
     private TunableNumber tempDegree = new TunableNumber("Set Arm To Degrees", 0.0);
-
     private final NeutralOut m_neutral = new NeutralOut();
+        // Declare the ProfiledPIDController
+    ProfiledPIDController m_controller;
+        // Declare the lookup table
+    VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
+        // Declare the shot preset
+    ShooterPreset m_shot;
+        // Declare the goalAngle of the Arm
+    double goalAngle;
 
-    // For superstructure
     /**
-    * Returns the arm subsystem instance.
+    * Creates a new Arm.
     *
     * @return the arm subsystem instance.
     */
@@ -123,21 +121,18 @@ public class Arm extends ProfiledPIDSubsystem {
         return instance;
     }
 
-
     /*
      * Constructor
      */
     public Arm() {
 
-        super(
-                new ProfiledPIDController(
+        m_controller = new ProfiledPIDController(
                         ArmConstants.k_ARM_KP,
                         ArmConstants.k_ARM_KI,
                         ArmConstants.k_ARM_KD,
                         new TrapezoidProfile.Constraints(
                                 ArmConstants.kMaxVelocityRadPerSecond,
-                                ArmConstants.kMaxAccelerationRadPerSecSquared)),
-                0);
+                                ArmConstants.kMaxAccelerationRadPerSecSquared));
 
         // https://v6.docs.ctr-electronics.com/en/latest/docs/hardware-reference/talonfx/improving-performance-with-current-limits.html
         var talonFXConfigurator = new TalonFXConfiguration();
@@ -167,23 +162,20 @@ public class Arm extends ProfiledPIDSubsystem {
 
     @Override
     public void periodic() {
-
+      // This method will be called once per scheduler run
         // Put the measurement of the arm and state of the arm on shuffleboard
-        SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
-        SmartDashboard.putString("Arm state", getM_ArmState().toString());
-        SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(getMeasurement()));
-        SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
-        SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
-        
+        if ((Constants.RobotConstants.kIsTuningMode) || (Constants.RobotConstants.kIsArmTuningMode)) {
+            SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
+            SmartDashboard.putString("Arm state", getM_ArmState().toString());
+            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(getMeasurement()));
+            SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
+            SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
+        }
        
         // If testing arm angle through Tunablenumber tempDegree, set the arm to the manually desired angle
         if (Constants.RobotConstants.kIsArmTuningMode) {
-            // Prevent arm from going too low or high
-            if (tempDegree.get() > upperLimit) {
-                tempDegree.set(upperLimit);
-            } else if (tempDegree.get() < lowerLimit) {
-                tempDegree.set(lowerLimit);
-            }
+            // Prevent arm from going too low or high - constrains it by the upper and lower limit
+            tempDegree.set(MathUtil.clamp(tempDegree.get(), lowerLimit, upperLimit));
             // Apply controls
             m_controller.setTolerance(m_ArmState.getTolerance()); 
             m_controller.setGoal(Units.degreesToRadians(tempDegree.get()));
@@ -193,20 +185,26 @@ public class Arm extends ProfiledPIDSubsystem {
         else if ((m_ArmState == ArmState.AIMING)) {
             // If distance is less than 0 then distance value for aiming is invalid
             if (m_distance.getAsDouble() > 0.0) {
-                VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
-                ShooterPreset m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
-                m_controller.setGoal(Units.degreesToRadians(m_shot.getArmAngle()));
+                // Use a vision lookup table
+                m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
+                // Prevent the desired arm angle from being out of bounds
+                goalAngle = MathUtil.clamp(m_shot.getArmAngle(), lowerLimit, upperLimit);
+                // Use PID controller
+                m_controller.setGoal(Units.degreesToRadians(goalAngle));
                 useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
             }
+        } else if ((m_ArmState == ArmState.STOWED) && (m_controller.atGoal())) {
+            // If the arm is already stowed, hold it using neutral mode (Coast or brake)
+            m_armLead.setControl(m_neutral);
         } else {
             // The "regular" case
-            m_controller.setGoal(Units.degreesToRadians(m_ArmState.getStateOutput()));
-            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());     
+            goalAngle = MathUtil.clamp(m_ArmState.getStateOutput(), lowerLimit, upperLimit);
+            m_controller.setGoal(Units.degreesToRadians(goalAngle));
+            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());   
         }
 
     }
 
-    @Override
     protected void useOutput(double output, State setpoint) {
 
         double correctedPosition = setpoint.position - ArmConstants.kARM_STARTING_OFFSET;
@@ -217,7 +215,6 @@ public class Arm extends ProfiledPIDSubsystem {
 
     }
 
-    @Override
     protected double getMeasurement() {
         //getAbsolutePosition returns in rotations, not radians, hence the x2pi
         // returns in radians
@@ -243,7 +240,6 @@ public class Arm extends ProfiledPIDSubsystem {
         return ()-> false;
     }
 
-
     /* return a command that:
     *  1. Change the Armstate
     *  2. Sets the m_controller's tolerance from parent ProfiledPIDSubsystem class to what the state machine dictates
@@ -255,7 +251,8 @@ public class Arm extends ProfiledPIDSubsystem {
     }
 
     /*
-     * When aiming, setStateCommand() to AIMING for Arm and Shooter
+     * Possible future implementation: When aiming, setStateCommand() to AIMING for Arm and Shooter
+     * m_distance is supposed to be the horizontal distance to target
      * At the same time, setDistanceToTarget() for Arm and Shooter equal to distance reported by PhotonVision
      */
     public Command setDistanceToTarget(double distance) {
