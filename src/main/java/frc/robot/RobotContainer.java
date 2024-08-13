@@ -39,11 +39,12 @@ public class RobotContainer {
 
   private boolean isHarmonyClimbing = false;
 
-  
+  //TODO: add scaling so that is the deadzone is .2, then .2 to 1 is actually 0 to 1
   
   private void configureBindings() {
     robotState.getShotAngle();
 
+    //Every loop of the periodic, pass the joystick values to the drivetrain
     drivetrain.setDefaultCommand(drivetrain.run(
         () -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX())));
 
@@ -56,39 +57,35 @@ public class RobotContainer {
                 .alongWith(intake.setStateCommand(Intake.State.INTAKE))))
             .until(() -> stage.hasNote()));
 
-/*     driverCtrl.leftTrigger(Constants.ControllerConstants.leftTriggerMid).whileTrue(
-      Commands.startEnd(() -> drivetrain.setHeadingAngle(robotState.getAmpAngle()),drivetrain::clearHeadingAngle)); */
-
+    // Run the stage to shoot
     driverCtrl.rightTrigger().whileTrue(stage.setStateCommand(Stage.State.SHOOT));
 
     //TODO: Add Harmony climb
     driverCtrl.y().whileTrue(arm.setStateCommand(Arm.State.CLIMB));
 
-    driverCtrl.a().whileTrue(arm.setStateCommand(Arm.State.SUBWOOFER).alongWith(shooter.setStateCommand(Shooter.State.SUBWOOFER)));
+    driverCtrl.a().whileTrue(arm.setStateCommand(Arm.State.SUBWOOFER)
+            .alongWith(shooter.setStateCommand(Shooter.State.SUBWOOFER)));
 
     driverCtrl.b()
         .whileTrue(robotState.setTargetCommand(TARGET.AMP)
             .alongWith(arm.setStateCommand(Arm.State.AMP))
-            .alongWith(shooter.setStateCommand(Shooter.State.AMP))
-            .alongWith(drivetrain.setStateCommand(Drivetrain.State.CARDINAL)));
+            .alongWith(shooter.setStateCommand(Shooter.State.AMP)));
 
     driverCtrl.x()
         .whileTrue(robotState.setTargetCommand(TARGET.SPEAKER)
             .alongWith(arm.setStateCommand(Arm.State.LOOKUP))
-            .alongWith(shooter.setStateCommand(Shooter.State.SHOOT))
-            .alongWith(drivetrain.setStateCommand(Drivetrain.State.HEADING))); // Lookup shot
+            .alongWith(shooter.setStateCommand(Shooter.State.SHOOT))); // Lookup shot
 
     driverCtrl.back()
         .whileTrue(robotState.setTargetCommand(TARGET.FEED)
             .alongWith(arm.setStateCommand(Arm.State.FEED))
-            .alongWith(shooter.setStateCommand(Shooter.State.FEED))
-            .alongWith(drivetrain.setStateCommand(Drivetrain.State.HEADING)));
+            .alongWith(shooter.setStateCommand(Shooter.State.FEED)));
 
     //TODO: Remove when done with testing
     driverCtrl.povUp().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
       
     //Toggle whether we are harmony climbing or not
-    driverCtrl.povDown().onTrue(Commands.either(Commands.runOnce(()-> isHarmonyClimbing = false) ,Commands.runOnce(()-> isHarmonyClimbing = true) , () -> isHarmonyClimbing));
+    driverCtrl.povDown().onTrue(Commands.runOnce(()-> isHarmonyClimbing = !isHarmonyClimbing));
     
 
   }

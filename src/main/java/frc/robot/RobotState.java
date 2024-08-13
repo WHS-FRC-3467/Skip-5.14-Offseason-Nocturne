@@ -76,7 +76,6 @@ public class RobotState {
 
     }
 
-    //TODO: Feed distance from speaker
     public double getShotAngle() {
         if (target == TARGET.SPEAKER) {
             return speakerArmAngleMap.get(getDistanceToTarget());

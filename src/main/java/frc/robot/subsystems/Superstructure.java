@@ -62,19 +62,19 @@ public class Superstructure extends SubsystemBase {
 
       case INTAKE:
         arm.setState(Arm.State.INTAKE);
-        if (arm.atGoal() && !stage.hasNote()) {
-
-            intake.setState(Intake.State.INTAKE);
-            stage.setState(Stage.State.OFF);
-
-          
-
-        } else {
-        intake.setState(Intake.State.OFF);
         shooter.setState(Shooter.State.OFF);
-        stage.setState(Stage.State.OFF);
-          
+        if (arm.atGoal() && !stage.hasNote()) {
+            intake.setState(Intake.State.INTAKE);
+            stage.setState(Stage.State.INTAKE);
+        } else {
+          intake.setState(Intake.State.OFF);
+          stage.setState(Stage.State.OFF);
         }
+        break;
+
+      case AMP:
+      arm.setState(Arm.State.AMP);
+      shooter.setState(Shooter.State.AMP);
 
     }
 

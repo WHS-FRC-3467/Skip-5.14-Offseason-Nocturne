@@ -52,6 +52,19 @@ public class Constants {
         public static final double headingAngleTolerance = 2.0;
         public static final double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
         public static final double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
+
+        public static TalonFXConfiguration motorConfig() {
+            TalonFXConfiguration m_configuration = new TalonFXConfiguration();
+
+            m_configuration.CurrentLimits.SupplyCurrentLimit = 30; 
+            m_configuration.CurrentLimits.SupplyCurrentThreshold = 90;
+            m_configuration.CurrentLimits.SupplyTimeThreshold = 0.01; 
+            m_configuration.CurrentLimits.SupplyCurrentLimitEnable = true; 
+            m_configuration.CurrentLimits.StatorCurrentLimit = 80;
+            m_configuration.CurrentLimits.StatorCurrentLimitEnable = true; 
+
+            return m_configuration;
+        }
     }
 
     public static final class IntakeConstants { 

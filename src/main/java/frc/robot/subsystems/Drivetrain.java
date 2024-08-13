@@ -56,11 +56,12 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
         return state;
     }
 
+    private RobotState.TARGET target = RobotState.TARGET.NONE;
+
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
 
-    private Optional<Rotation2d> headingAngle = Optional.empty();
     private double controllerX = 0.0;
     private double controllerY = 0.0;
     private double controllerOmega = 0.0;
@@ -144,6 +145,25 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     public void periodic() {
 
         RobotState.getInstance().setRobotPose(getState().Pose); //Tell RobotState current pose
+        target = RobotState.getInstance().getTarget();
+
+        switch (target) {
+            case NONE:
+                setState(State.TELEOP);
+                break;
+            case SPEAKER:
+                setState(State.HEADING);
+                break;
+            case FEED:
+                setState(State.HEADING);
+                break;
+            case AMP:
+                setState(State.CARDINAL);
+                break;
+            default:
+                setState(State.TELEOP);
+                break;
+        }
 
          switch (state) {
             case TELEOP -> {
@@ -179,66 +199,46 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
         fieldCentricFacingAngle.HeadingController.setTolerance(Units.degreesToRadians(.5));
     }
 
-    // Gets current rotation from estimated pose
-/*     public Rotation2d getRotation() {
-        return getState().Pose.getRotation();
-    } */
-
     public void setControllerInput(double controllerX, double controllerY, double controllerOmega) {
         this.controllerX = controllerX;
         this.controllerY = controllerY;
         this.controllerOmega = controllerOmega;
     }
 
-    public void setHeadingAngle(Rotation2d angle) {
-        this.state = State.HEADING;
-        this.headingAngle = Optional.ofNullable(angle);
-    }
-
     public boolean atGoal() {
-        return MathUtil.isNear(headingAngle.get().getDegrees(), getState().Pose.getRotation().getDegrees(), DriveConstants.headingAngleTolerance);
-    }
-
-    public void clearHeadingAngle() {
-        this.state = State.TELEOP;
-        this.headingAngle = null;
-    }
-
-    public boolean atHeadingAngle() {
         return fieldCentricFacingAngle.HeadingController.atSetpoint();
     }
 
     public Command setStateCommand(State state) {
-        return startEnd(() -> setState(state),() -> setState(State.TELEOP));
-      }
+        return startEnd(() -> setState(state), () -> setState(State.TELEOP));
+    }
 
+    public void setSwerveDriveCustomCurrentLimits() {
+        // Create a current configuration to use for the drive motor of each swerve
+        // module.
+        var customCurrentLimitConfigs = new CurrentLimitsConfigs();
 
-      public void setSwerveDriveCustomCurrentLimits() {
-          // Create a current configuration to use for the drive motor of each swerve
-          // module.
-          var customCurrentLimitConfigs = new CurrentLimitsConfigs();
+        // Iterate through each module.
+        for (var module : Modules) {
+            // Get the Configurator for the current drive motor.
+            var currentConfigurator = module.getDriveMotor().getConfigurator();
 
-          // Iterate through each module.
-          for (var module : Modules) {
-              // Get the Configurator for the current drive motor.
-              var currentConfigurator = module.getDriveMotor().getConfigurator();
+            // Refresh the current configuration, since the stator current limit has already
+            // been set.
+            currentConfigurator.refresh(customCurrentLimitConfigs);
 
-              // Refresh the current configuration, since the stator current limit has already
-              // been set.
-              currentConfigurator.refresh(customCurrentLimitConfigs);
+            // Set all of the parameters related to the supply current. The values should
+            // come from Constants.
+            customCurrentLimitConfigs.SupplyCurrentLimit = 30;
+            customCurrentLimitConfigs.SupplyCurrentThreshold = 90;
+            customCurrentLimitConfigs.SupplyTimeThreshold = .01;
+            customCurrentLimitConfigs.SupplyCurrentLimitEnable = true;
 
-              // Set all of the parameters related to the supply current. The values should
-              // come from Constants.
-              customCurrentLimitConfigs.SupplyCurrentLimit = 30;
-              customCurrentLimitConfigs.SupplyCurrentThreshold = 90;
-              customCurrentLimitConfigs.SupplyTimeThreshold = .01;
-              customCurrentLimitConfigs.SupplyCurrentLimitEnable = true;
+            customCurrentLimitConfigs.StatorCurrentLimit = 80;
+            customCurrentLimitConfigs.StatorCurrentLimitEnable = true;
 
-              customCurrentLimitConfigs.StatorCurrentLimit = 80;
-              customCurrentLimitConfigs.StatorCurrentLimitEnable = true;
-
-              // Apply the new current limit configuration.
-              currentConfigurator.apply(customCurrentLimitConfigs);
-          }
-      }
+            // Apply the new current limit configuration.
+            currentConfigurator.apply(customCurrentLimitConfigs);
+        }
+    }
 }
