@@ -52,7 +52,7 @@ public class ComplexSubsystem extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void periodic() { //Runs 50x a sec
     // This method will be called once per scheduler run
     goalAngle = MathUtil.clamp(state.getStateOutput(), lowerLimitDegrees, upperLimitDegrees);
 

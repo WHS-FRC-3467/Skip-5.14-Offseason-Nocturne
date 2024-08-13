@@ -6,7 +6,7 @@ import java.util.function.DoubleSupplier;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration; // Go to class descrpitions for more info
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -64,10 +64,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
     // Initialize motor controllers
     TalonFX m_leftShooter = new TalonFX(18);
+    TalonFX m_rightShooter = new TalonFX(19);
 
     public ShooterSubsystem() {
 
         m_leftShooter.setInverted(true);
+        m_rightShooter.setInverted(false);
     }
 
 @Override
@@ -75,7 +77,7 @@ public class ShooterSubsystem extends SubsystemBase {
 //Periodic will check if there is input coming from the xbox controls (I hope)
 //then the states will respond accordingly (in theory)
     if (state == State.OFF) {
-        return boolean STAYSTILL
+        return boolean STAYSTILL.true
     } else {
       // m_intakeMotor.setControl(m_percent.withOutput(state.getStateOutput()));
     }
