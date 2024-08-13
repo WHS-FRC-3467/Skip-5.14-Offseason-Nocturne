@@ -107,6 +107,9 @@ public class Arm extends SubsystemBase {
     // Declare the ProfiledPIDController
     ProfiledPIDController m_controller;
 
+    // Declare the goalAngle of the Arm
+    double goalAngle;
+
     /**
     * Creates a new Arm.
     *
@@ -173,12 +176,8 @@ public class Arm extends SubsystemBase {
        
         // If testing arm angle through Tunablenumber tempDegree, set the arm to the manually desired angle
         if (Constants.RobotConstants.kIsArmTuningMode) {
-            // Prevent arm from going too low or high
-            if (tempDegree.get() > upperLimit) {
-                tempDegree.set(upperLimit);
-            } else if (tempDegree.get() < lowerLimit) {
-                tempDegree.set(lowerLimit);
-            }
+            // Prevent arm from going too low or high - constrains it by the upper and lower limit
+            tempDegree.set(MathUtil.clamp(tempDegree.get(), lowerLimit, upperLimit));
             // Apply controls
             m_controller.setTolerance(m_ArmState.getTolerance()); 
             m_controller.setGoal(Units.degreesToRadians(tempDegree.get()));
@@ -188,14 +187,23 @@ public class Arm extends SubsystemBase {
         else if ((m_ArmState == ArmState.AIMING)) {
             // If distance is less than 0 then distance value for aiming is invalid
             if (m_distance.getAsDouble() > 0.0) {
+                // Use a vision lookup table
+                // TODO: Take the instantiation of m_LookupTable out of periodic and declaration of m_shot out of periodic
                 VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
                 ShooterPreset m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
-                m_controller.setGoal(Units.degreesToRadians(m_shot.getArmAngle()));
+                // Prevent the desired arm angle from being out of bounds
+                goalAngle = MathUtil.clamp(m_shot.getArmAngle(), lowerLimit, upperLimit);
+                // Use PID controller
+                m_controller.setGoal(Units.degreesToRadians(goalAngle));
                 useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
             }
+        } else if ((m_ArmState == ArmState.STOWED) && (m_controller.atGoal())) {
+            // If the arm is already stowed, hold it using neutral mode (Coast or brake)
+            m_armLead.setControl(m_neutral);
         } else {
             // The "regular" case
-            m_controller.setGoal(Units.degreesToRadians(m_ArmState.getStateOutput()));
+            goalAngle = MathUtil.clamp(m_ArmState.getStateOutput(), lowerLimit, upperLimit);
+            m_controller.setGoal(Units.degreesToRadians(goalAngle));
             useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());     
         }
 
