@@ -90,24 +90,22 @@ public class Arm extends SubsystemBase {
     ArmState m_FutureArm = ArmState.STOWED; // May be marked for depreciation
 
     public BooleanSupplier isAtState = ()-> false;
-
-    // Distance for aiming
+        // Distance for aiming - if negative distance, then it will not aim
     public DoubleSupplier m_distance = ()-> -0.1;
-
-    // Limit the amount of degrees that the arm can go
+        // Limit the amount of degrees that the arm can go
     private double lowerLimit = -18.0;
     private double upperLimit = 106.0;
-
-    // Arm Angle Adjustment via Shuffleboard
+        // Arm Angle Adjustment via Shuffleboard
     @Getter
     private TunableNumber tempDegree = new TunableNumber("Set Arm To Degrees", 0.0);
-
     private final NeutralOut m_neutral = new NeutralOut();
-
-    // Declare the ProfiledPIDController
+        // Declare the ProfiledPIDController
     ProfiledPIDController m_controller;
-
-    // Declare the goalAngle of the Arm
+        // Declare the lookup table
+    VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
+        // Declare the shot preset
+    ShooterPreset m_shot;
+        // Declare the goalAngle of the Arm
     double goalAngle;
 
     /**
@@ -122,7 +120,6 @@ public class Arm extends SubsystemBase {
 
         return instance;
     }
-
 
     /*
      * Constructor
@@ -167,12 +164,13 @@ public class Arm extends SubsystemBase {
     public void periodic() {
       // This method will be called once per scheduler run
         // Put the measurement of the arm and state of the arm on shuffleboard
-        SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
-        SmartDashboard.putString("Arm state", getM_ArmState().toString());
-        SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(getMeasurement()));
-        SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
-        SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
-        
+        if ((Constants.RobotConstants.kIsTuningMode) || (Constants.RobotConstants.kIsArmTuningMode)) {
+            SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
+            SmartDashboard.putString("Arm state", getM_ArmState().toString());
+            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(getMeasurement()));
+            SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
+            SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
+        }
        
         // If testing arm angle through Tunablenumber tempDegree, set the arm to the manually desired angle
         if (Constants.RobotConstants.kIsArmTuningMode) {
@@ -188,9 +186,7 @@ public class Arm extends SubsystemBase {
             // If distance is less than 0 then distance value for aiming is invalid
             if (m_distance.getAsDouble() > 0.0) {
                 // Use a vision lookup table
-                // TODO: Take the instantiation of m_LookupTable out of periodic and declaration of m_shot out of periodic
-                VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
-                ShooterPreset m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
+                m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
                 // Prevent the desired arm angle from being out of bounds
                 goalAngle = MathUtil.clamp(m_shot.getArmAngle(), lowerLimit, upperLimit);
                 // Use PID controller
@@ -204,7 +200,7 @@ public class Arm extends SubsystemBase {
             // The "regular" case
             goalAngle = MathUtil.clamp(m_ArmState.getStateOutput(), lowerLimit, upperLimit);
             m_controller.setGoal(Units.degreesToRadians(goalAngle));
-            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());     
+            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());   
         }
 
     }
@@ -243,7 +239,6 @@ public class Arm extends SubsystemBase {
         isAtState = ()-> false;
         return ()-> false;
     }
-
 
     /* return a command that:
     *  1. Change the Armstate

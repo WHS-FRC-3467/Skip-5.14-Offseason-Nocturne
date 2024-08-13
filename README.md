@@ -10,7 +10,6 @@ Nocturne 2024 Offseason Bot
 - Development, Testing, and Stable will be used to determine the progress for subsystems/commands/features
 
 # Development
-- Recode Arm to match updated ComplexSubsystem
 
 # Testing/Ready For Testing
 - Arm PID
