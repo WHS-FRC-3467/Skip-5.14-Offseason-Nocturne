@@ -14,9 +14,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.RobotState.TARGET;
 import frc.robot.generated.TunerConstants;
@@ -37,45 +36,64 @@ public class RobotContainer {
   public final Shooter shooter = new Shooter();
   public final Stage stage = new Stage();
 
+  //TODO: Move to robotstate?
   private boolean isHarmonyClimbing = false;
 
+  //TODO: add invert for alliance
   //TODO: add scaling so that is the deadzone is .2, then .2 to 1 is actually 0 to 1
+  //TODO: add photon vision
+  //TODO: add note detection
+  //TODO: add auto intake
+  //TODO: add auto paths
+  //TODO: add advantagekit/scope
+  //TODO: add Mechanism2d displays for subsystems
+  //TODO: add leds
+  //TODO: add controller rumble
+  //TODO: test current system functionality
+  //TODO: add two stage joystick trigger functionality, i.e. auto intake when fully pulled, auto shoot when partially pulled
+
   
   private void configureBindings() {
-    robotState.getShotAngle();
 
     //Every loop of the periodic, pass the joystick values to the drivetrain
     drivetrain.setDefaultCommand(drivetrain.run(
         () -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX())));
 
     drivetrain.registerTelemetry(logger::telemeterize);
+
+    Trigger readyToShoot = new Trigger(() -> arm.atGoal() && shooter.atGoal() && drivetrain.atGoal());
+    Trigger hasNote = new Trigger(() -> stage.hasNote());
     
     // TODO: Add smart collection
     driverCtrl.leftTrigger(Constants.ControllerConstants.leftTriggerMin)
-        .whileTrue(arm.setStateCommand(Arm.State.INTAKE)
-            .alongWith(Commands.waitUntil(arm::atGoal).andThen(stage.setStateCommand(Stage.State.INTAKE)
-                .alongWith(intake.setStateCommand(Intake.State.INTAKE))))
-            .until(() -> stage.hasNote()));
+        .whileTrue(arm.setStateCommand(Arm.State.INTAKE) //Set arm goal to intake position
+            .alongWith(Commands.waitUntil(arm::atGoal).andThen(stage.setStateCommand(Stage.State.INTAKE) //also wait until at position, then run stage
+                .alongWith(intake.setStateCommand(Intake.State.INTAKE)))) //and intake
+            .until(hasNote)); //until we have a note
 
     // Run the stage to shoot
     driverCtrl.rightTrigger().whileTrue(stage.setStateCommand(Stage.State.SHOOT));
 
     //TODO: Add Harmony climb
-    driverCtrl.y().whileTrue(arm.setStateCommand(Arm.State.CLIMB));
+    driverCtrl.y().whileTrue(Commands.either(arm.setStateCommand(Arm.State.HARMONY), arm.setStateCommand(Arm.State.CLIMB), () -> isHarmonyClimbing));
 
+    //Subwoofer
     driverCtrl.a().whileTrue(arm.setStateCommand(Arm.State.SUBWOOFER)
             .alongWith(shooter.setStateCommand(Shooter.State.SUBWOOFER)));
 
+    //Amp
     driverCtrl.b()
         .whileTrue(robotState.setTargetCommand(TARGET.AMP)
             .alongWith(arm.setStateCommand(Arm.State.AMP))
             .alongWith(shooter.setStateCommand(Shooter.State.AMP)));
 
+    //Speaker
     driverCtrl.x()
         .whileTrue(robotState.setTargetCommand(TARGET.SPEAKER)
             .alongWith(arm.setStateCommand(Arm.State.LOOKUP))
             .alongWith(shooter.setStateCommand(Shooter.State.SHOOT))); // Lookup shot
 
+    //Feed
     driverCtrl.back()
         .whileTrue(robotState.setTargetCommand(TARGET.FEED)
             .alongWith(arm.setStateCommand(Arm.State.FEED))

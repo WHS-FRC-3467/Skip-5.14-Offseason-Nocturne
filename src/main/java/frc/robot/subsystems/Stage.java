@@ -54,6 +54,7 @@ public class Stage extends SubsystemBase {
     displayInfo(true);
   }
 
+  //TODO: evalute if needs to move to different class
   public boolean hasNote() {
     return !m_stageBeamBreak.get();
   }

@@ -23,9 +23,7 @@ public class Superstructure extends SubsystemBase {
     FEED,
     SHOOT,
     CLIMB,
-    UNJAM,
-
-
+    UNJAM;
   }
 
   @Getter
@@ -51,35 +49,9 @@ public class Superstructure extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    switch (state) {
-      case STOWED:
-        arm.setState(Arm.State.STOW);
-        drivetrain.setState(Drivetrain.State.TELEOP);
-        intake.setState(Intake.State.OFF);
-        shooter.setState(Shooter.State.OFF);
-        stage.setState(Stage.State.OFF);
-        break;
 
-      case INTAKE:
-        arm.setState(Arm.State.INTAKE);
-        shooter.setState(Shooter.State.OFF);
-        if (arm.atGoal() && !stage.hasNote()) {
-            intake.setState(Intake.State.INTAKE);
-            stage.setState(Stage.State.INTAKE);
-        } else {
-          intake.setState(Intake.State.OFF);
-          stage.setState(Stage.State.OFF);
-        }
-        break;
-
-      case AMP:
-      arm.setState(Arm.State.AMP);
-      shooter.setState(Shooter.State.AMP);
-
-    }
 
   }
-
 
   public Command setStateCommand(State state) {
     return startEnd(() -> setState(state),() -> setState(State.STOWED));

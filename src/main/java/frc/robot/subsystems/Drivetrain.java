@@ -196,7 +196,7 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
             fieldCentricFacingAngle.HeadingController.setPID(5, 0, 0);
         }
         fieldCentricFacingAngle.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
-        fieldCentricFacingAngle.HeadingController.setTolerance(Units.degreesToRadians(.5));
+        fieldCentricFacingAngle.HeadingController.setTolerance(Units.degreesToRadians(.5)); //TODO: confirm this tolerance
     }
 
     public void setControllerInput(double controllerX, double controllerY, double controllerOmega) {
@@ -206,7 +206,12 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     }
 
     public boolean atGoal() {
-        return fieldCentricFacingAngle.HeadingController.atSetpoint();
+        if (state == State.TELEOP) {
+            return true;
+        } else {
+            return fieldCentricFacingAngle.HeadingController.atSetpoint();
+        }
+
     }
 
     public Command setStateCommand(State state) {
