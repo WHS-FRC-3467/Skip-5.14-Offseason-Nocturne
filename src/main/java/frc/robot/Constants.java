@@ -12,6 +12,28 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 public class Constants {
 
 
+    public static final class RobotConstants {
+
+        public static final boolean kIsTuningMode = true;
+        public static final boolean kIsDriveTuningMode = false;
+        public static final boolean kIsArmTuningMode = true;
+        public static final boolean kIsIntakeTuningMode = false;
+        public static final boolean kIsStageTuningMode = true;
+        public static final boolean kIsShooterTuningMode = true;
+        public static final boolean kIsAutoAimTuningMode = true;
+        public static final boolean kIsTrapTuningMode = false;
+    
+        // Shooter and Arm Setpoints
+
+        public static final double robotAtAngleTolerance = 2;
+        public static final double robotMaxStaticShotDist = 5;
+        public static final double robotMaxDynamicShotDist = 4.5;
+        public static final double robotMaxFeedShotDist = 15;
+
+        public static final double kTimeToShoot = .15; //Time it takes before note leave the shooter
+        public static final double kTimeToReady = .5;   // Past number was 0.5 
+    }
+
     public static final class ExampleCTREMotorConfig { 
         public static final int ID_Motor = 0;
 
@@ -32,5 +54,41 @@ public class Constants {
 
             return m_configuration;
         }
+    }
+
+    public static final class CanConstants {
+        public static final int ID_ShooterLeft = 15;
+        public static final int ID_ShooterRight = 17;
+
+        // Intake CAN IDs
+        public static final int ID_IntakeMotor = 19;
+        public static final int ID_IntakeCtrRoller = 20;
+        public static final int ID_IntakeFollower = 21;
+
+        // Stage CAN IDs
+        public static final int ID_StageMotor = 23;
+
+        // Arm CAN IDs
+        public static final int ID_ArmLeader = 25;
+        public static final int ID_ArmFollower = 26;    
+        public static final int LED_CANDLE = 27;
+    }
+
+    public static final class StageConstants {
+
+        public static final double kIntakeSpeed = 0.3;
+        public static final double kFeedToShooterSpeed = 1.0;
+        public static final double kFeedToAmpSpeed = 0.7;
+        public static final double kFeedToTrapSpeed = 0.5;
+
+        public static final double kFeedToShooterTime = 0.5;
+        public static final double kFeedToAmpTime = 1.0;
+        public static final double kFeedToTrapTime = 5.0;
+    }
+
+    public static final class DIOConstants {
+
+        public static final int kArmAbsEncoder = 0;
+        public static final int kStageBeamBreak = 1;
     }
 }
