@@ -167,7 +167,7 @@ public class Arm extends SubsystemBase {
         if ((Constants.RobotConstants.kIsTuningMode) || (Constants.RobotConstants.kIsArmTuningMode)) {
             SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
             SmartDashboard.putString("Arm state", getM_ArmState().toString());
-            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(getMeasurement()));
+            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(m_armEncoder.getDistance()));
             SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
             SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
         }
@@ -179,7 +179,11 @@ public class Arm extends SubsystemBase {
             // Apply controls
             m_controller.setTolerance(m_ArmState.getTolerance()); 
             m_controller.setGoal(Units.degreesToRadians(tempDegree.get()));
-            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
+                // Use Output
+            // Calculate the feedforward from the controller setpoint
+            double feedforward = m_feedforward.calculate(m_controller.getSetpoint().position, m_controller.getSetpoint().velocity);
+            // Add the feedforward to the PID output to get the motor output
+            m_armLead.setVoltage(m_controller.calculate(m_armEncoder.getDistance()) + feedforward);
         }
         
         else if ((m_ArmState == ArmState.STOWED) && (m_controller.atGoal())) {
@@ -188,24 +192,16 @@ public class Arm extends SubsystemBase {
         } else {
             // The "regular" case
             goalAngle = MathUtil.clamp(m_ArmState.getStateOutput(), lowerLimit, upperLimit);
+            m_controller.setTolerance(m_ArmState.getTolerance()); 
             m_controller.setGoal(Units.degreesToRadians(goalAngle));
-            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());   
+                // Use Output
+            // Calculate the feedforward from the controller setpoint
+            double feedforward = m_feedforward.calculate(m_controller.getSetpoint().position, m_controller.getSetpoint().velocity);
+            // Add the feedforward to the PID output to get the motor output
+            m_armLead.setVoltage(m_controller.calculate(m_armEncoder.getDistance()) + feedforward);
+
         }
 
-    }
-
-    protected void useOutput(double output, State setpoint) {
-
-        double correctedPosition = setpoint.position - ArmConstants.kARM_STARTING_OFFSET;
-        // Calculate the feedforward from the sepoint
-        double feedforward = m_feedforward.calculate(correctedPosition, setpoint.velocity);
-        // Add the feedforward to the PID output to get the motor output
-        m_armLead.setVoltage(output + feedforward);
-
-    }
-
-    protected double getMeasurement() {
-        return m_armEncoder.getDistance();
     }
 
     public BooleanSupplier isArmAtState() {
