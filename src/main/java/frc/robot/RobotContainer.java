@@ -6,6 +6,7 @@ package frc.robot;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -27,7 +28,7 @@ public class RobotContainer {
 
   /* Setting up bindings for necessary control of the swerve drive platform */
       // The robot's subsystems and commands are defined here...
-    private final Intake m_IntakeSubsystem = new Intake();
+    private final Intake intakeSubsystem = new Intake();
     private final Shooter m_ShooterSubsystem = new Shooter();
     private final Stage m_StageSubsystem = new Stage();
     private final Arm m_ArmSubsystem;
@@ -40,9 +41,21 @@ public class RobotContainer {
     GenericHID m_operatorRmbl = m_operatorController.getHID();
   public final Drivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
 
-  public final SimpleSubsystem simpleSubsystem = new SimpleSubsystem();
-  public final Intake intakeSubsystem = new Intake();
-
+        // AUTO - Register Named Commands
+            // Bring Arm Down, Intake Note until Note in Stage
+    /* NamedCommands.registerCommand("Intake", m_ArmSubsystem.setStateCommand(Arm.ArmState.STOWED)
+            .until(m_ArmSubsystem.isArmAtState())
+            .andThen(m_IntakeSubsystem.setStateCommand(Intake.State.FWD)
+                    .alongWith(m_StageSubsystem.setStateCommand(Stage.State.INTAKE))
+                    .until(() -> m_StageSubsystem.beambreakSupplier.getAsBoolean()))); */
+        // Get Arm and Shooter Ready for Subwoofer, then Shoot
+    /* NamedCommands.registerCommand("ToSubwoofer", m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.SUBWOOFER)
+            .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.SUBWOOFER))
+            .until(() -> (m_ShooterSubsystem.isShooterAtSpeed()
+                    && m_ArmSubsystem.isArmAtState().getAsBoolean()))
+                    .andThen(m_StageSubsystem.setStateCommand(Stage.State.SHOOTING))
+                    .until(() -> !m_StageSubsystem.beambreakSupplier.getAsBoolean()));       */
+                    
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
@@ -68,6 +81,57 @@ public class RobotContainer {
     // reset the field-centric heading on left bumper press
     joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
 
+            // Bindings that would be used in a match
+        // Schedule `runShooterCommand` when the Xbox controller's B button is pressed,cancelling on release.
+        // joystick.b().whileTrue(m_ShooterSubsystem.setStateCommand(ShooterState.SHOOT));
+        // A button: stop shooter
+        // joystick.a().onTrue(m_ShooterSubsystem.setStateCommand(ShooterState.STOP));
+        // Manual Intake
+        // joystick.x().whileTrue(intakeSubsystem.setStateCommand(Intake.State.FWD));
+        // Manual shoot note (run stage)
+
+        /* joystick.y().whileTrue(m_StageSubsystem.setStateCommand(Stage.State.SHOOTING)
+            .until(() -> !m_StageSubsystem.beambreakSupplier.getAsBoolean())); */
+        // Intake Note Command
+        /* 
+        joystick.leftTrigger(Constants.OperatorConstants.triggerThreshold).whileTrue(m_ArmSubsystem.setStateCommand(Arm.ArmState.STOWED)
+                .until(m_ArmSubsystem.isArmAtState())
+                .andThen(intakeSubsystem.setStateCommand(Intake.State.FWD)
+                        .alongWith(m_StageSubsystem.setStateCommand(Stage.State.INTAKE))
+                        .until(() -> m_StageSubsystem.beambreakSupplier.getAsBoolean())));   */
+        /* 
+                        // Expel note - Manual outtake
+        joystick.rightTrigger(Constants.OperatorConstants.triggerThreshold).whileTrue(intakeSubsystem.setStateCommand(Intake.State.REV)
+                .alongWith(m_StageSubsystem.setStateCommand(Stage.State.REV))); */
+        // Driver: Right Bumper: Arm/Shooter to FEED
+        /* 
+        joystick.rightBumper().whileTrue(                
+            m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.FEED)
+                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.FEED)));
+        */
+        // Operator Controls
+            // Operator: DPad Left: Arm to Podium position (when pressed)
+        /* m_operatorController.povLeft().whileTrue(m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.SHOOT)
+            .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.PODIUM))); */
+
+        // Operator: DPad Up: Shooter/Arm to AMP Position & Speed (when pressed)
+        /* 
+        m_operatorController.povUp().whileTrue(
+                m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.AMP)
+                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.AMP)));
+                      */
+
+        // Operator: DPad Right: Arm to Harmony Position (when pressed)
+        m_operatorController.povRight().whileTrue(                
+                m_ArmSubsystem.setStateCommand(Arm.ArmState.HARMONY));
+
+        // Operator: DPad Down: Arm to Subwoofer Position (when pressed)
+        /*m_operatorController.povDown().whileTrue(                
+            m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.SUBWOOFER)
+                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.SUBWOOFER)));
+                           .until(() -> (m_ShooterSubsystem.isShooterAtSpeed()
+                                && m_ArmSubsystem.isArmAtState().getAsBoolean()
+                                 .andThen(m_StageSubsystem.setStateCommand(Stage.State.SHOOTING)))) */
 
     drivetrain.registerTelemetry(logger::telemeterize);
 

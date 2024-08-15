@@ -48,6 +48,12 @@ public class Constants {
             return m_configuration;
         }
     }
+    public static class OperatorConstants {
+        public static final int kDriverControllerPort = 0;
+        public static final int kOperatorControllerPort = 1;
+        public static final double triggerThreshold = 0.4;
+
+    }
 
     public static class CanConstants {
         /* PDH Power Ports
@@ -87,11 +93,11 @@ public class Constants {
         public static final int ID_ShooterRight = 17;
 
         // Intake CAN IDs
-        public static final int k_INTAKE_LEFT_CAN_ID = 19;
-        public static final int k_INTAKE_RIGHT_CAN_ID = 21;
+        public static final int ID_IntakeMotor = 19;
+        public static final int ID_IntakeFollower = 21;
 
         //Stage CAN IDs
-        public static final int k_STAGE_CAN_ID = 23;
+        public static final int ID_StageMotor = 23;
 
         // Arm CAN IDs
         public static final int ID_ArmLeader = 25;
