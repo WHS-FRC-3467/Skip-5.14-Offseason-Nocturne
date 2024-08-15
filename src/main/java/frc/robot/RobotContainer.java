@@ -8,21 +8,36 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.SimpleSubsystem;
+import frc.robot.subsystems.Stage;
 
 public class RobotContainer {
   private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
   private double MaxAngularRate = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
 
   /* Setting up bindings for necessary control of the swerve drive platform */
+      // The robot's subsystems and commands are defined here...
+    private final Intake m_IntakeSubsystem = new Intake();
+    private final Shooter m_ShooterSubsystem = new Shooter();
+    private final Stage m_StageSubsystem = new Stage();
+    private final Arm m_ArmSubsystem;
+    private final Superstructure m_Superstructure = new Superstructure();
+    private final RobotState m_RobotState;
+    // Instantiate driver and operator controllers
   private final CommandXboxController joystick = new CommandXboxController(0); // My joystick
+  private final CommandXboxController m_operatorController = new CommandXboxController(1);
+      GenericHID m_driveRmbl = joystick.getHID();
+    GenericHID m_operatorRmbl = m_operatorController.getHID();
   public final Drivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
 
   public final SimpleSubsystem simpleSubsystem = new SimpleSubsystem();
@@ -59,6 +74,8 @@ public class RobotContainer {
   }
 
   public RobotContainer() {
+    m_ArmSubsystem = Arm.getInstance();
+    m_RobotState = RobotState.getInstance();
     configureBindings();
   }
 

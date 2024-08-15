@@ -27,11 +27,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 
 import frc.robot.Constants;
+import frc.robot.RobotState;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Util.TunableNumber;
-import frc.robot.Util.RobotState;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
