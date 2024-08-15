@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.Subsystems;
+package frc.robot.subsystems;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -27,10 +27,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 
 import frc.robot.Constants;
+import frc.robot.RobotState;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
-import frc.robot.Util.RobotState;
 import frc.robot.Util.TunableNumber;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -45,14 +45,6 @@ public class Arm extends SubsystemBase {
     /** Arm subsystem singleton. For superstructure. */
     private static Arm instance = null;
 
-    TalonFX m_armLead = new TalonFX(CanConstants.ID_ArmLeader);
-    TalonFX m_armFollow = new TalonFX(CanConstants.ID_ArmFollower);
-    DutyCycleEncoder m_armEncoder = new DutyCycleEncoder(DIOConstants.k_ARM_ENCODER_ID);
-
-    private final ArmFeedforward m_feedforward = new ArmFeedforward(
-            ArmConstants.kSVolts, ArmConstants.kGVolts,
-            ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
-
     // Keep track of what the Arm is doing
     //First double is setpoint angle in degrees, second double is tolerance
     @RequiredArgsConstructor
@@ -62,10 +54,10 @@ public class Arm extends SubsystemBase {
         SUBWOOFER(()-> -7.6, ()-> 1.0),
         PODIUM  (()-> 6.0, ()-> 0.4),
         WING    (()-> 10.0, ()-> 0.4), // Specific Wing Shot
-        AMP     (()-> 77.0, ()-> 0.4),
+        AMP     (()-> 77.0, ()-> 0.4), // May getDistanceToTarget() for amp and feed
         CLIMB   (()-> 71.0, ()-> 1),
         HARMONY (()-> 105.0, ()-> 1),
-        AIMING  (()-> 0, ()-> RobotState.getInstance().getShotAngle()),      // Dynamic
+        AIMING  (()-> 0, ()-> RobotState.getInstance().getShotAngle()),      // Dynamic - Used for aiming - tje angle supplier is just a filler value
         FEED    (()-> -3.0, ()-> 2.0);
 
         private final DoubleSupplier angleSupplier;
@@ -94,6 +86,15 @@ public class Arm extends SubsystemBase {
         // Limit the amount of degrees that the arm can go
     private double lowerLimit = -18.0;
     private double upperLimit = 106.0;
+        
+    TalonFX m_armLead = new TalonFX(CanConstants.ID_ArmLeader);
+    TalonFX m_armFollow = new TalonFX(CanConstants.ID_ArmFollower);
+    DutyCycleEncoder m_armEncoder = new DutyCycleEncoder(DIOConstants.k_ARM_ENCODER_ID);
+
+    private final ArmFeedforward m_feedforward = new ArmFeedforward(
+            ArmConstants.kSVolts, ArmConstants.kGVolts,
+            ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
+    
         // Arm Angle Adjustment via Shuffleboard
     @Getter
     private TunableNumber tempDegree = new TunableNumber("Set Arm To Degrees", 0.0);
@@ -153,6 +154,10 @@ public class Arm extends SubsystemBase {
         m_armFollow.setControl(new Follower(m_armLead.getDeviceID(), true));
 
         m_armEncoder.setDutyCycleRange(ArmConstants.kDuty_Cycle_Min, ArmConstants.kDuty_Cycle_Max);
+        m_armEncoder.setPositionOffset(ArmConstants.k_ARM_HORIZONTAL_OFFSET_RADIANS/(Math.PI*2));
+        // dutycycle returns in fractions of a rotation, not radians, hence the x2pi because we use radians
+        // this sets the distance per rotation to be equal to 2pi radians
+        m_armEncoder.setDistancePerRotation(Math.PI*2);
     }
 
     @Override
@@ -162,7 +167,7 @@ public class Arm extends SubsystemBase {
         if ((Constants.RobotConstants.kIsTuningMode) || (Constants.RobotConstants.kIsArmTuningMode)) {
             SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
             SmartDashboard.putString("Arm state", getM_ArmState().toString());
-            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(getMeasurement()));
+            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(m_armEncoder.getDistance()));
             SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
             SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
         }
@@ -174,38 +179,34 @@ public class Arm extends SubsystemBase {
             // Apply controls
             m_controller.setTolerance(m_ArmState.getTolerance()); 
             m_controller.setGoal(Units.degreesToRadians(tempDegree.get()));
-            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
-        } else if ((m_ArmState == ArmState.STOWED) && (m_controller.atGoal())) {
+                // Use Output
+            // Calculate the feedforward from the controller setpoint
+            double feedforward = m_feedforward.calculate(m_controller.getSetpoint().position, m_controller.getSetpoint().velocity);
+            // Add the feedforward to the PID output to get the motor output
+            m_armLead.setVoltage(m_controller.calculate(m_armEncoder.getDistance()) + feedforward);
+        }
+        
+        else if ((m_ArmState == ArmState.STOWED) && (m_controller.atGoal())) {
             // If the arm is already stowed, hold it using neutral mode (Coast or brake)
             m_armLead.setControl(m_neutral);
         } else {
             // The "regular" case
             goalAngle = MathUtil.clamp(m_ArmState.getStateOutput(), lowerLimit, upperLimit);
+            m_controller.setTolerance(m_ArmState.getTolerance()); 
             m_controller.setGoal(Units.degreesToRadians(goalAngle));
-            useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());   
+                // Use Output
+            // Calculate the feedforward from the controller setpoint
+            double feedforward = m_feedforward.calculate(m_controller.getSetpoint().position, m_controller.getSetpoint().velocity);
+            // Add the feedforward to the PID output to get the motor output
+            m_armLead.setVoltage(m_controller.calculate(m_armEncoder.getDistance()) + feedforward);
+
         }
 
     }
 
-    protected void useOutput(double output, State setpoint) {
-
-        double correctedPosition = setpoint.position - ArmConstants.kARM_STARTING_OFFSET;
-        // Calculate the feedforward from the sepoint
-        double feedforward = m_feedforward.calculate(correctedPosition, setpoint.velocity);
-        // Add the feedforward to the PID output to get the motor output
-        m_armLead.setVoltage(output + feedforward);
-
-    }
-
-    protected double getMeasurement() {
-        //getAbsolutePosition returns in rotations, not radians, hence the x2pi
-        // returns in radians
-        return ((m_armEncoder.getAbsolutePosition() - m_armEncoder.getPositionOffset())*2*Math.PI) - ArmConstants.k_ARM_HORIZONTAL_OFFSET_RADIANS;
-
-    }
-
     public BooleanSupplier isArmAtState() {
-        if (MathUtil.isNear(Math.toRadians(m_ArmState.getStateOutput()), getMeasurement(), Math.toRadians(m_ArmState.getTolerance()))) {
+        // m_armEncoder.getDistance() gets the position in radians (which is 2pi * duty cycle units)
+        if (MathUtil.isNear(Math.toRadians(m_ArmState.getStateOutput()), m_armEncoder.getDistance(), Math.toRadians(m_ArmState.getTolerance()))) {
             isAtState = ()-> true;
             return ()-> true;
         }
@@ -214,7 +215,7 @@ public class Arm extends SubsystemBase {
     }
 
     public BooleanSupplier isArmAtTempSetpoint() {
-        if (MathUtil.isNear(Math.toRadians(tempDegree.get()), getMeasurement(), Math.toRadians(m_ArmState.getTolerance()))) {
+        if (MathUtil.isNear(Math.toRadians(tempDegree.get()), m_armEncoder.getDistance(), Math.toRadians(m_ArmState.getTolerance()))) {
             isAtState = ()-> true;
             return ()-> true;
         }
@@ -240,4 +241,5 @@ public class Arm extends SubsystemBase {
     public Command setDistanceToTarget(double distance) {
         return startEnd(() -> this.m_distance = ()-> distance, () -> this.m_distance = () -> -0.1);
     }
+
 }

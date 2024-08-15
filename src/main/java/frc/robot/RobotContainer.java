@@ -30,15 +30,15 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Subsystems.Arm;
-import frc.robot.Subsystems.CommandSwerveDrivetrain;
-import frc.robot.Subsystems.Intake;
-import frc.robot.Subsystems.Shooter;
-import frc.robot.Subsystems.Shooter.ShooterState;
-import frc.robot.Subsystems.Stage;
-import frc.robot.Subsystems.Superstructure;
-import frc.robot.Subsystems.Telemetry;
-import frc.robot.Util.RobotState;
+import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Shooter.ShooterState;
+import frc.robot.subsystems.Stage;
+import frc.robot.subsystems.Superstructure;
+import frc.robot.subsystems.Telemetry;
+import frc.robot.RobotState;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;

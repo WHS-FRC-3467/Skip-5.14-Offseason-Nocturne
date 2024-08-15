@@ -1,4 +1,4 @@
-package frc.robot.Subsystems;
+package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
@@ -22,8 +22,8 @@ import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.Subsystems.Arm.ArmState;
-import frc.robot.Util.RobotState;
+import frc.robot.subsystems.Arm.ArmState;
+import frc.robot.RobotState;
 import frc.robot.Util.TunableNumber;
 //import frc.robot.sim.PhysicsSim;
 import lombok.Getter;
