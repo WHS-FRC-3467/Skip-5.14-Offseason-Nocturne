@@ -27,33 +27,8 @@ public class Superstructure extends SubsystemBase {
 
     @Getter
     @Setter
-    public RobotState m_SuperState = new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
+    public RobotState m_RobotState;
 
-    // Declare various "options" for our superstate
-    public RobotState IDLE = 
-        new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
-    public RobotState INTAKE = 
-        new RobotState(Intake.State.FWD, Stage.State.INTAKE, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
-    public RobotState EJECT = 
-        new RobotState(Intake.State.REV, Stage.State.REV, Arm.ArmState.STOWED, Shooter.ShooterState.STOP);
-    public RobotState SUBWOOFER = 
-        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.SUBWOOFER, Shooter.ShooterState.SUBWOOFER);
-    public RobotState PODIUM = 
-        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.PODIUM, Shooter.ShooterState.SHOOT);
-    public RobotState WING = 
-        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.WING, Shooter.ShooterState.SHOOT);
-    public RobotState AMP = 
-        new RobotState(Intake.State.OFF, Stage.State.AMP, Arm.ArmState.AMP, Shooter.ShooterState.AMP);
-    public RobotState CLIMB = 
-        new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.CLIMB, Shooter.ShooterState.STOP);
-    public RobotState HARMONY = 
-        new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.HARMONY, Shooter.ShooterState.STOP);
-    public RobotState AIMING = 
-        new RobotState(Intake.State.OFF, Stage.State.OFF, Arm.ArmState.AIMING, Shooter.ShooterState.SHOOT); // Tentative
-    public RobotState FEED = 
-        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.FEED, Shooter.ShooterState.FEED);
-    public RobotState PASSTHROUGH = 
-        new RobotState(Intake.State.OFF, Stage.State.SHOOTING, Arm.ArmState.FEED, Shooter.ShooterState.PASSTHROUGH);
 
     /** Arm subsystem reference. */
     private final Arm m_ArmSubsystem;
@@ -91,16 +66,19 @@ public class Superstructure extends SubsystemBase {
         m_ShooterSubsystem = Shooter.getInstance();
         m_StageSubsystem = Stage.getInstance();
         m_Drivetrain = CommandSwerveDrivetrain.getInstance();
+        m_RobotState = RobotState.getInstance();
     
     }
 
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
-        SmartDashboard.putString("Superstructure State", getM_SuperState().toString());
+        SmartDashboard.putString("Target", m_RobotState.getTarget().toString());
+        SmartDashboard.putNumber("Distance to Target", m_RobotState.getDistanceToTarget());
+        // getAngleToTarget returns the angle in a Rotation2d object, hence the need to getDegrees()
+        SmartDashboard.putNumber("Angle to Target", m_RobotState.getAngleToTarget().getDegrees());
 
         // Update SuperState periodically to for eventual use of LEDs
-        m_SuperState.reset(m_IntakeSubsystem.getState(), m_StageSubsystem.getState(), m_ArmSubsystem.getM_ArmState(), m_ShooterSubsystem.getM_ShooterState());
     }
 
 
@@ -108,7 +86,7 @@ public class Superstructure extends SubsystemBase {
      * @param state - use one of the defined states (INTAKE, EJECT, SUBWOOFER, etc)
      * @return a startEnd command that sets m_Superstate to the parameter for the duration of the command
     */
-    public Command setStateCommand(RobotState state) {
-        return startEnd(() -> setM_SuperState(state), () -> setM_SuperState(IDLE));
-    }
+   // public Command setTargetCommand(RobotState.Target target) {
+        // return new RunCommand(m_RobotState.setTargetCommand(target)); // should not be null, superstructure should be ignored for now
+    // }
 }

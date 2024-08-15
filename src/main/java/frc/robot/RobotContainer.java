@@ -87,6 +87,7 @@ public class RobotContainer {
     private final Superstructure m_Superstructure;
     private final PhotonVision m_bottomLeftCam;
     private final PhotonVision m_topRightCam;
+    private final RobotState m_RobotState;
     // Instantiate driver and operator controllers
     CommandXboxPS5Controller m_driverController = new CommandXboxPS5Controller(OperatorConstants.kDriverControllerPort);
     CommandXboxPS5Controller m_operatorController = new CommandXboxPS5Controller(OperatorConstants.kOperatorControllerPort);
@@ -124,6 +125,7 @@ public class RobotContainer {
         m_Drivetrain = CommandSwerveDrivetrain.getInstance();
         m_bottomLeftCam = new PhotonVision(m_Drivetrain, 0);
         m_topRightCam = new PhotonVision(m_Drivetrain, 1);
+        m_RobotState = RobotState.getInstance();
         // Detect if controllers are missing / Stop multiple warnings
         DriverStation.silenceJoystickConnectionWarning(true);
         

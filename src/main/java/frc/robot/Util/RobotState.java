@@ -4,79 +4,110 @@
 
 package frc.robot.Util;
 
-import java.util.function.DoubleSupplier;
-
-import frc.robot.RobotContainer;
-import frc.robot.Subsystems.Arm;
-import frc.robot.Subsystems.Intake;
-import frc.robot.Subsystems.Shooter;
-import frc.robot.Subsystems.Stage;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants.FieldConstants;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-/**
- * This comment is copied from main
- * A Class to hold setpoints for both the Shooter and the Arm, since they work
- * in tandem.
- * @param intake  The Intake state
- * @param stage   The Stage state
- * @param arm     The Arm setpoint
- * @param shooter The Shooter setpoint
- */
+public class RobotState {
+    
+    private static RobotState instance;
 
-    public class RobotState {
-        
-        Intake.State INTAKE;
-        Stage.State STAGE;
-        Arm.ArmState ARM;
-        Shooter.ShooterState SHOOTER;
+    private Pose2d robotPose = new Pose2d();
 
-        public RobotState(Intake.State intakestate, Stage.State stagestate, Arm.ArmState armstate, Shooter.ShooterState shooterstate){
-            this.INTAKE = intakestate;
-            this.STAGE = stagestate;
-            this.ARM = armstate;
-            this.SHOOTER = shooterstate;
+    @Getter
+    @RequiredArgsConstructor
+    public enum Target {
+        NONE    (null, null),
+        AMP     (FieldConstants.BLUE_AMP, FieldConstants.RED_AMP),
+        SPEAKER (FieldConstants.BLUE_SPEAKER, FieldConstants.RED_SPEAKER),
+        FEED    (FieldConstants.BLUE_FEED, FieldConstants.RED_FEED);
 
-        }
-
-        public void reset(Intake.State intakestate, Stage.State stagestate, Arm.ArmState armstate, Shooter.ShooterState shooterstate){
-            this.INTAKE = intakestate;
-            this.STAGE = stagestate;
-            this.ARM = armstate;
-            this.SHOOTER = shooterstate;
-
-        }
-
-        public void setIntakeState(Intake.State intakeState) {
-            this.INTAKE = intakeState;
-        }
-
-        public void setStageState(Stage.State stageState) {
-             this.STAGE = stageState;
-        }
-
-        public void setArmState(Arm.ArmState armState) {
-            this.ARM = armState;
-        }
-
-        public void setShooterState(Shooter.ShooterState shooterState) {
-            this.SHOOTER = shooterState;
-        }
-
-        public Intake.State getIntakeState() {
-            return this.INTAKE;
-        }
-
-        public Stage.State getStageState() {
-            return this.STAGE;
-        }
-
-        public Arm.ArmState getArmState() {
-            return this.ARM;
-        }
-
-        public Shooter.ShooterState getShooterState() {
-            return this.SHOOTER;
-        }
+        private final Pose2d blueTargetPose;
+        private final Pose2d redTargetPose;
     }
+
+    @Getter
+    @Setter
+    private Target target = Target.NONE;
+
+    double distanceToTarget; 
+    /**
+    * Creates a singleton RobotState.
+    *
+    * @return the robostate instance.
+    */
+    public static RobotState getInstance() {
+        if (instance == null) {
+        instance = new RobotState();
+        }
+
+        return instance;
+    }
+
+    public Rotation2d getAngleOfTarget() {
+        return (DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getRotation() : target.redTargetPose.getRotation();
+    }
+
+    //TODO: need to invert
+    public Rotation2d getAngleToTarget() {
+        return robotPose.getTranslation()
+                .minus((DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getTranslation(): target.redTargetPose.getTranslation())
+                .getAngle();
+    }
+
+    public double getDistanceToTarget() {
+        return robotPose.getTranslation().getDistance(
+                (DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getTranslation(): target.redTargetPose.getTranslation());
+    }
+
+    private static final InterpolatingDoubleTreeMap speakerArmAngleMap = new InterpolatingDoubleTreeMap();
+    static {
+        speakerArmAngleMap.put(1.5, 12.71 -17.6);
+        speakerArmAngleMap.put(2.0, 21.00-17.6);
+        speakerArmAngleMap.put(2.5, 24.89-17.6);
+        speakerArmAngleMap.put(3.0, 29.00-17.6);
+        speakerArmAngleMap.put(3.5, 31.20-17.6);
+        speakerArmAngleMap.put(4.0, 32.50-17.6);
+        speakerArmAngleMap.put(4.5, 34.00-17.6);
+        speakerArmAngleMap.put(5.0, 35.00-17.6);
+    }
+    
+    private static final InterpolatingDoubleTreeMap feedArmAngleMap = new InterpolatingDoubleTreeMap();
+    static {
+        feedArmAngleMap.put(1.5, 12.71);
+        feedArmAngleMap.put(2.0, 21.00);
+        feedArmAngleMap.put(2.5, 24.89);
+        feedArmAngleMap.put(3.0, 29.00);
+        feedArmAngleMap.put(3.5, 31.20);
+        feedArmAngleMap.put(4.0, 32.50);
+        feedArmAngleMap.put(4.5, 34.00);
+        feedArmAngleMap.put(5.0, 35.00);
+    }
+    
+    public double getShotAngle() {
+        if (target == Target.SPEAKER) {
+            return speakerArmAngleMap.get(getDistanceToTarget());
+        } else if (target == Target.FEED) {
+            return feedArmAngleMap.get(getDistanceToTarget());
+        } else {
+            return 0.0;
+        } 
+    }
+
+    public void setRobotPose(Pose2d pose) {
+        robotPose = pose;
+    }
+
+    public Command setTargetCommand(Target target) {
+        return Commands.startEnd(() -> setTarget(target), () -> setTarget(Target.NONE))
+                .withName("Set Robot Target: " + target.toString());
+    }
+}

@@ -30,9 +30,8 @@ import frc.robot.Constants;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
-import frc.robot.Util.ShooterPreset;
+import frc.robot.Util.RobotState;
 import frc.robot.Util.TunableNumber;
-import frc.robot.Util.VisionLookUpTable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -66,7 +65,7 @@ public class Arm extends SubsystemBase {
         AMP     (()-> 77.0, ()-> 0.4),
         CLIMB   (()-> 71.0, ()-> 1),
         HARMONY (()-> 105.0, ()-> 1),
-        AIMING  (()-> 0, ()-> 1.0),      // Dynamic - Used for aiming - tje angle supplier is just a filler value
+        AIMING  (()-> 0, ()-> RobotState.getInstance().getShotAngle()),      // Dynamic
         FEED    (()-> -3.0, ()-> 2.0);
 
         private final DoubleSupplier angleSupplier;
@@ -101,10 +100,6 @@ public class Arm extends SubsystemBase {
     private final NeutralOut m_neutral = new NeutralOut();
         // Declare the ProfiledPIDController
     ProfiledPIDController m_controller;
-        // Declare the lookup table
-    VisionLookUpTable m_LookUpTable = new VisionLookUpTable();
-        // Declare the shot preset
-    ShooterPreset m_shot;
         // Declare the goalAngle of the Arm
     double goalAngle;
 
@@ -180,19 +175,6 @@ public class Arm extends SubsystemBase {
             m_controller.setTolerance(m_ArmState.getTolerance()); 
             m_controller.setGoal(Units.degreesToRadians(tempDegree.get()));
             useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
-        }
-        
-        else if ((m_ArmState == ArmState.AIMING)) {
-            // If distance is less than 0 then distance value for aiming is invalid
-            if (m_distance.getAsDouble() > 0.0) {
-                // Use a vision lookup table
-                m_shot = m_LookUpTable.getShooterPreset(m_distance.getAsDouble());
-                // Prevent the desired arm angle from being out of bounds
-                goalAngle = MathUtil.clamp(m_shot.getArmAngle(), lowerLimit, upperLimit);
-                // Use PID controller
-                m_controller.setGoal(Units.degreesToRadians(goalAngle));
-                useOutput(m_controller.calculate(getMeasurement()), m_controller.getSetpoint());
-            }
         } else if ((m_ArmState == ArmState.STOWED) && (m_controller.atGoal())) {
             // If the arm is already stowed, hold it using neutral mode (Coast or brake)
             m_armLead.setControl(m_neutral);
