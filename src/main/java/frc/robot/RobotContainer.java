@@ -51,6 +51,7 @@ public class RobotContainer {
   //TODO: add controller rumble
   //TODO: test current system functionality
   //TODO: add two stage joystick trigger functionality, i.e. auto intake when fully pulled, auto shoot when partially pulled
+  //TODO: add shoot on the move
 
   
   private void configureBindings() {

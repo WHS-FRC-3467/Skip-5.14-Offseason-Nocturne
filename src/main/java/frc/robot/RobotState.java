@@ -7,6 +7,7 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -18,7 +19,14 @@ import lombok.Setter;
 /** Add your docs here. */
 public class RobotState {
     private static RobotState instance;
+
+    @Getter
+    @Setter
     private Pose2d robotPose = new Pose2d();
+
+    @Getter
+    @Setter
+    private ChassisSpeeds robotSpeeds = new ChassisSpeeds();
 
     @RequiredArgsConstructor
     @Getter
@@ -43,7 +51,6 @@ public class RobotState {
         return instance;
       }
 
-
       public Rotation2d getAngleOfTarget() {
           return (DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getRotation() : target.redTargetPose.getRotation();
       }
@@ -52,16 +59,13 @@ public class RobotState {
       public Rotation2d getAngleToTarget() {
           return robotPose.getTranslation()
                   .minus((DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getTranslation(): target.redTargetPose.getTranslation())
-                  .getAngle();
+                  .getAngle().unaryMinus(); //TODO: Test if unaryMinus fixed it
       }
 
       public double getDistanceToTarget() {
           return robotPose.getTranslation().getDistance(
                   (DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getTranslation(): target.redTargetPose.getTranslation());
       }
-
-
-
 
     private static final InterpolatingDoubleTreeMap speakerArmAngleMap = new InterpolatingDoubleTreeMap();
     static {
@@ -75,16 +79,23 @@ public class RobotState {
         speakerArmAngleMap.put(5.0, 35.00);
     }
 
-    public double getShotAngle() {
-        if (target == TARGET.SPEAKER) {
-            return speakerArmAngleMap.get(getDistanceToTarget());
-        } else {
-            return 0.0;
-        } 
+    private static final InterpolatingDoubleTreeMap feedArmAngleMap = new InterpolatingDoubleTreeMap();
+    static {
+        feedArmAngleMap.put(5.0, 0.0);
+        feedArmAngleMap.put(6.0, -10.0);
+        feedArmAngleMap.put(7.0, -19.0);
+
     }
 
-    public void setRobotPose(Pose2d pose) {
-        robotPose = pose;
+    public double getShotAngle() {
+        switch (target) {
+            case SPEAKER: 
+            return speakerArmAngleMap.get(getDistanceToTarget());
+            case FEED:
+            return feedArmAngleMap.get(getDistanceToTarget());
+            default:
+            return 0.0;
+        }
     }
 
     public Command setTargetCommand(TARGET target) {

@@ -142,6 +142,8 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     public void periodic() {
 
         RobotState.getInstance().setRobotPose(getState().Pose); //Tell RobotState current pose
+        RobotState.getInstance().setRobotSpeeds(getCurrentRobotChassisSpeeds()); //Tell RobotState current speeds
+        
         target = RobotState.getInstance().getTarget();
 
         switch (target) {
