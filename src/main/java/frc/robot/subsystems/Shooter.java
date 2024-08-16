@@ -36,6 +36,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -43,6 +44,8 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+
 //import frc.robot.Constants.CanConstants;
 //import frc.robot.Constants.RobotConstants;
 //import frc.robot.Constants.ShooterConstants;
@@ -64,7 +67,7 @@ public class Shooter extends SubsystemBase {
         OFF(() -> 0.0, () -> 0.0), // To either hold a note or stop running
         SHOOT(() -> 30.0, () -> 30.0), // Gets the note from the stage
         AMP(() -> 20.0, () -> 30.0), // Shoots or just runs the shooter
-        PODIUM(() -> 40.0, () -> 40.0); //A random shooter state
+        FERRY(() -> 40.0, () -> 40.0); //A random shooter state (all of these values are random)
 
         private final DoubleSupplier outputSupplierUno;
         private final DoubleSupplier outputSupplierDos;
@@ -89,7 +92,7 @@ public class Shooter extends SubsystemBase {
     @Getter
     @Setter
 
-    private ProfiledPIDController pidController = new ProfiledPIDController(2, 3, 4,
+    private ProfiledPIDController pidController = new ProfiledPIDController(18, 0, 0.2,
       new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration));
 
 
@@ -104,16 +107,16 @@ public class Shooter extends SubsystemBase {
         public static final int ID_ShooterRight = 17;
 
     // Initialize motor controllers
-    TalonFX m_leftShooter = new TalonFX(18);
+    TalonFX m_leftShooter = new TalonFX(18); //These are made up deviceIds, I'm not sure what the actual Ids are.
     TalonFX m_rightShooter = new TalonFX(19);
 
     //Voltage Velocity - instantiate (to create an object from a class (I think)) --> done
     //Set max velocity --> Done
-    //Declare a PID controler --> Attempted
-    //Declare what P, I, and D are. --> Also Attempted
-    // Neutral mode - what it can do while stopped --> Did Coast (not sure if Brake is required)
+    //Declare a PID controler --> Done
+    //Declare what P, I, and D are. --> Done
+    // Neutral mode - what it can do while stopped --> Did Coast
 
-    // Current limits
+    // Current limits - Yes
 
 
     public Shooter() {
@@ -122,12 +125,25 @@ public class Shooter extends SubsystemBase {
         m_rightShooter.setInverted(false);
         TalonFXConfiguration m_configuration = new TalonFXConfiguration();
           m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Coast; 
-          m_configuration.CurrentLimits.StatorCurrentLimit = 0;
-          m_configuration.CurrentLimits.StatorCurrentLimitEnable = false;
+          m_configuration.CurrentLimits.StatorCurrentLimit = 70;
+          m_configuration.CurrentLimits.StatorCurrentLimitEnable = true;
           m_configuration.CurrentLimits.SupplyCurrentLimit = 60;
           m_configuration.CurrentLimits.SupplyCurrentLimitEnable = true;
-          m_configuration.CurrentLimits.SupplyCurrentThreshold = 150;
-          m_configuration.CurrentLimits.SupplyTimeThreshold = 2;
+          m_configuration.CurrentLimits.SupplyCurrentThreshold = 80;
+          m_configuration.CurrentLimits.SupplyTimeThreshold = 0.1;
+
+      PowerDistribution m_PowerDistribution = new PowerDistribution();
+
+      boolean atState = ((Math.abs(state.getRightStateOutput() - m_rightShooter.getVelocity().getValueAsDouble()) <= 1) && (Math.abs(state.getLeftStateOutput() - m_leftShooter.getVelocity().getValueAsDouble()) <= 1));
+
+      SmartDashboard.putNumber("Voltage", m_PowerDistribution.getVoltage());
+      SmartDashboard.putNumber("TotalCurrent", m_PowerDistribution.getTotalCurrent());
+      SmartDashboard.putNumber("Power Distribution", m_PowerDistribution.getTotalPower());
+      SmartDashboard.putString("Shooter State", state.toString());
+      SmartDashboard.putBoolean("AtState", atState); 
+
+    
+
         //NeutralOut m_neutral = new NeutralOut();
         //talonFXConfigurator.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         //TalonFXConfiguration m_configuration = new TalonFXConfiguration();
@@ -141,21 +157,38 @@ public class Shooter extends SubsystemBase {
 
       if (state == State.OFF) {
           m_leftShooter.set(0.0);
-          m_rightShooter.set(0);
-      } else {
+          m_rightShooter.set(0.0);
+      } 
+     /* else {
           //Set m_temp to VelocityVoltage based on state
 
-        //Set m_temp to be a percentage of VoltageVelocity
+        //Set m_temp to be a percentage of VoltageVelocity --> not sure if this is necessary
          m_leftShooter.setControl(m_temp.withVelocity(state.getLeftStateOutput()));
          m_rightShooter.setControl(m_temp.withVelocity(state.getRightStateOutput()));
-        //if the state is SHOOT, then set m_temp as a percent of xbox controler input for shooting
+        //if the state is SHOOT, then hopefully set m_temp as a percent of xbox controler input for shooting
+      } */
+      else if (state == State.SHOOT) {
+          m_leftShooter.set(22.0);
+          m_rightShooter.set(22.0);
       }
-  }
+
+      else if (state == State.AMP) {
+          m_leftShooter.set(25.0);  //This a guess value
+          m_rightShooter.set(25.0); //This is also a guess value
+      }
+
+      else if (state == State.FERRY) {
+          m_leftShooter.set(0.0); //This is also a guess value
+          m_rightShooter.set(0.0); //This is a guess value
+      }
+
+    }
 
 
     public Command setStateCommand(State state) {
       return startEnd(() -> this.state = state, () -> this.state = State.OFF);
     }
 
-}
+
+  }
 //Note to self, it is VelocityVoltage, not VoltageVelocity :)
