@@ -39,6 +39,7 @@ import frc.robot.Constants.PhotonVisionConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 //import frc.robot.Constants.PhotonVisionConstants.top_right_cam;
 import frc.robot.Robot;
+import frc.robot.generated.TunerConstants;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,25 +57,56 @@ import org.photonvision.targeting.TargetCorner;
 
 public class PhotonVision extends SubsystemBase {
 
-    PhotonCamera camera;
+    private static CommandSwerveDrivetrain instance = null;
+    // Simulation
+    private PhotonCameraSim cameraSim;
+    private VisionSystemSim visionSim;
+
     Boolean hasTargets;
-    String cam_name;
+    private double lastEstTimestamp = 0;
     CommandSwerveDrivetrain m_drivetrain;
-    public PhotonVision(CommandSwerveDrivetrain drivetrain, int cam_num) {
-        m_drivetrain = drivetrain;
-        if (cam_num == 1) {
-            cam_name = "front_left_cam";
-        } else if (cam_num == 0) {
-            cam_name = "top_right_cam";
+
+    PhotonCamera cameraLeft = new PhotonCamera("front_left_cam");
+
+    PhotonPoseEstimator leftPhotonEstimator = new PhotonPoseEstimator(
+                    PhotonVisionConstants.kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, cameraLeft, PhotonVisionConstants.front_left_cam.kRobotToCam);
+    PhotonCamera cameraRight = new PhotonCamera("top_right_cam");
+
+    PhotonPoseEstimator rightPhotonEstimator = new PhotonPoseEstimator(
+                    PhotonVisionConstants.kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, cameraRight, PhotonVisionConstants.top_right_cam.kRobotToCam);
+
+        /**
+    * Returns the swerve subsystem instance. For superstructure
+    *
+    * @return the swerve subsystem instance.
+    */
+    public static CommandSwerveDrivetrain getInstance() {
+        if (instance == null) {
+            instance = TunerConstants.DriveTrain;
         }
 
-        camera = new PhotonCamera(cam_name);
+        return instance;
+    }
+
+    public PhotonVision() {
+
 
     }
 
     @Override
     public void periodic() {
 
+
+
+    }
+
+    public PhotonPipelineResult getLastResult(PhotonCamera camera){
+            // Query the latest result from PhotonVision
+        return camera.getLatestResult();
+    }
+
+    public double getDistanceToTarget(PhotonCamera camera){
+        double range = 0.0;
         /* Get the latest pipeline result.
         it returns a container with all information about currently detected targets from a PhotonCamera
         and is guaranteed to be from the same timestamp.
@@ -83,9 +115,40 @@ public class PhotonVision extends SubsystemBase {
         // MUST ALWAYS check if the result has a target before getting targets or else you may get a null pointer exception.
         // ALso must use the same result in every subsequent call in that loop
         hasTargets = result.hasTargets();
+        // If cameraRight has target, then get a list of tracked targets from a pipeline result.
+        // Contains info such as yaw, pitch, area, and robot relative pose
+        if (hasTargets) {
+            // First calculate range
+            if (camera.getName() == "front_left_cam"){
+            range =
+                PhotonUtils.calculateDistanceToTargetMeters(
+                    PhotonVisionConstants.LEFT_CAMERA_HEIGHT_METERS,
+                    PhotonVisionConstants.TARGET_HEIGHT_METERS,
+                    PhotonVisionConstants.LEFT_CAMERA_PITCH_RADIANS,
+                    Units.degreesToRadians(result.getBestTarget().getPitch()));
+            } else {
+                PhotonUtils.calculateDistanceToTargetMeters(
+                    PhotonVisionConstants.RIGHT_CAMERA_HEIGHT_METERS,
+                    PhotonVisionConstants.TARGET_HEIGHT_METERS,
+                    PhotonVisionConstants.RIGHT_CAMERA_PITCH_RADIANS,
+                    Units.degreesToRadians(result.getBestTarget().getPitch()));
+            }
+        }
+        return range;
+    }
+
+    public void results(PhotonCamera camera) {
+                /* Get the latest pipeline result.
+        it returns a container with all information about currently detected targets from a PhotonCamera
+        and is guaranteed to be from the same timestamp.
+        */
+        var result = camera.getLatestResult();
+        // MUST ALWAYS check if the result has a target before getting targets or else you may get a null pointer exception.
+        // ALso must use the same result in every subsequent call in that loop
+        hasTargets = result.hasTargets();
             // Tell shuffleboard whether cameras see an apriltag
-        SmartDashboard.putBoolean(cam_name + " has target ", hasTargets);
-        // If camera has target, then get a list of tracked targets from a pipeline result.
+        SmartDashboard.putBoolean(camera.getName() + " has target ", hasTargets);
+        // If cameraRight has target, then get a list of tracked targets from a pipeline result.
         // Contains info such as yaw, pitch, area, and robot relative pose
         if (hasTargets) {
             // Get a list of currently tracked targets.
@@ -103,43 +166,5 @@ public class PhotonVision extends SubsystemBase {
             //List<TargetCorner> corners = target.getCorners();
 
         }
-
-    }
-
-    public PhotonPipelineResult getLastResult(){
-            // Query the latest result from PhotonVision
-        return camera.getLatestResult();
-    }
-
-    public double getDistanceToTarget(){
-        double range = 0.0;
-        /* Get the latest pipeline result.
-        it returns a container with all information about currently detected targets from a PhotonCamera
-        and is guaranteed to be from the same timestamp.
-        */
-        var result = camera.getLatestResult();
-        // MUST ALWAYS check if the result has a target before getting targets or else you may get a null pointer exception.
-        // ALso must use the same result in every subsequent call in that loop
-        hasTargets = result.hasTargets();
-        // If camera has target, then get a list of tracked targets from a pipeline result.
-        // Contains info such as yaw, pitch, area, and robot relative pose
-        if (hasTargets) {
-            // First calculate range
-            if (cam_name == "front_left_cam"){
-            range =
-                PhotonUtils.calculateDistanceToTargetMeters(
-                    PhotonVisionConstants.LEFT_CAMERA_HEIGHT_METERS,
-                    PhotonVisionConstants.TARGET_HEIGHT_METERS,
-                    PhotonVisionConstants.LEFT_CAMERA_PITCH_RADIANS,
-                    Units.degreesToRadians(result.getBestTarget().getPitch()));
-            } else {
-                PhotonUtils.calculateDistanceToTargetMeters(
-                    PhotonVisionConstants.RIGHT_CAMERA_HEIGHT_METERS,
-                    PhotonVisionConstants.TARGET_HEIGHT_METERS,
-                    PhotonVisionConstants.RIGHT_CAMERA_PITCH_RADIANS,
-                    Units.degreesToRadians(result.getBestTarget().getPitch()));
-            }
-        }
-        return range;
     }
 }
