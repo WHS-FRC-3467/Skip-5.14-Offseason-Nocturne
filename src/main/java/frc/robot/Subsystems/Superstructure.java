@@ -73,10 +73,7 @@ public class Superstructure extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
-        SmartDashboard.putString("Target", m_RobotState.getTarget().toString());
-        SmartDashboard.putNumber("Distance to Target", m_RobotState.getDistanceToTarget());
-        // getAngleToTarget returns the angle in a Rotation2d object, hence the need to getDegrees()
-        SmartDashboard.putNumber("Angle to Target", m_RobotState.getAngleToTarget().getDegrees());
+        displayInfo(true);
 
         // Update SuperState periodically to for eventual use of LEDs
     }
@@ -89,4 +86,13 @@ public class Superstructure extends SubsystemBase {
    // public Command setTargetCommand(RobotState.Target target) {
         // return new RunCommand(m_RobotState.setTargetCommand(target)); // should not be null, superstructure should be ignored for now
     // }
+
+    public void displayInfo(boolean debug) {
+        if (debug) {
+            SmartDashboard.putString("Target", m_RobotState.getTarget().toString());
+            SmartDashboard.putNumber("Distance to Target", m_RobotState.getDistanceToTarget());
+        // getAngleToTarget returns the angle in a Rotation2d object, hence the need to getDegrees()
+            SmartDashboard.putNumber("Angle to Target", m_RobotState.getAngleToTarget().getDegrees());
+        }
+    }
 }

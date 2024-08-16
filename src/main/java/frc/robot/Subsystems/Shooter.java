@@ -67,8 +67,6 @@ public class Shooter extends SubsystemBase {
     @Setter
     ShooterState m_ShooterState = ShooterState.STOP;
 
-    DoubleSupplier m_distance = () -> -0.1;
-
     // Initialize devices
     TalonFX m_shooterLeft = new TalonFX(CanConstants.ID_ShooterLeft);
     TalonFX m_shooterRight = new TalonFX(CanConstants.ID_ShooterRight);
@@ -131,8 +129,7 @@ public class Shooter extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putBoolean("Shooter at speed", isShooterAtSpeed());
-        SmartDashboard.putString("Shooter state", getM_ShooterState().toString());
+        displayInfo(true);
         
         // set velocity according to state, add 0.5 V to overcome gravity
         if (m_ShooterState == ShooterState.STOP) {
@@ -165,7 +162,14 @@ public class Shooter extends SubsystemBase {
         return startEnd(() -> this.m_ShooterState = state, ()-> this.m_ShooterState = ShooterState.STOP);
     }
 
-    public Command setDistanceToTarget(double distance) {
-        return startEnd(() -> this.m_distance = ()-> distance, () -> this.m_distance = () -> -0.1);
+    public void displayInfo(boolean debug) {
+        if (debug) {
+            SmartDashboard.putBoolean("Shooter at speed", isShooterAtSpeed());
+            SmartDashboard.putString("Shooter state", getM_ShooterState().toString());
+            SmartDashboard.putNumber("Shooter Left Setpoint", m_ShooterState.getLeftStateOutput());
+            SmartDashboard.putNumber("Shooter Right Setpoint", m_ShooterState.getRightStateOutput());
+            SmartDashboard.putNumber("Left Shooter Current draw", m_shooterLeft.getSupplyCurrent().getValueAsDouble());
+            SmartDashboard.putNumber("Right Shooter Current draw", m_shooterRight.getSupplyCurrent().getValueAsDouble());
+        }
     }
 }

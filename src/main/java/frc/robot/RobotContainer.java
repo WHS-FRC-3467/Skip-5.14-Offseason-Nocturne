@@ -129,7 +129,7 @@ public class RobotContainer {
         
         // AUTO - Register Named Commands
             // Bring Arm Down, Intake Note until Note in Stage
-        NamedCommands.registerCommand("Intake", m_ArmSubsystem.setStateCommand(Arm.ArmState.STOWED)
+        NamedCommands.registerCommand("Intake", m_ArmSubsystem.setStateCommand(Arm.ArmState.INTAKE)
                 .until(m_ArmSubsystem.isArmAtState())
                 .andThen(m_IntakeSubsystem.setStateCommand(Intake.State.FWD)
                         .alongWith(m_StageSubsystem.setStateCommand(Stage.State.INTAKE))
@@ -258,7 +258,7 @@ public class RobotContainer {
         m_driverController.y().whileTrue(m_StageSubsystem.setStateCommand(Stage.State.SHOOTING)
             .until(() -> !m_StageSubsystem.beambreakSupplier.getAsBoolean()));
         // Intake Note Command
-        m_driverController.leftTrigger(Constants.OperatorConstants.triggerThreshold).whileTrue(m_ArmSubsystem.setStateCommand(Arm.ArmState.STOWED)
+        m_driverController.leftTrigger(Constants.OperatorConstants.triggerThreshold).whileTrue(m_ArmSubsystem.setStateCommand(Arm.ArmState.INTAKE)
                 .until(m_ArmSubsystem.isArmAtState())
                 .andThen(m_IntakeSubsystem.setStateCommand(Intake.State.FWD)
                         .alongWith(m_StageSubsystem.setStateCommand(Stage.State.INTAKE))
@@ -269,17 +269,20 @@ public class RobotContainer {
         // Driver: Right Bumper: Arm/Shooter to FEED
         m_driverController.rightBumper().whileTrue(                
             m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.FEED)
-                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.FEED)));
+                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.FEED))
+                        .alongWith(m_RobotState.setTargetCommand(RobotState.Target.FEED)));
 
         // Operator Controls
             // Operator: DPad Left: Arm to Podium position (when pressed)
         m_operatorController.povLeft().whileTrue(m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.SHOOT)
-            .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.PODIUM)));
+            .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.PODIUM))
+            .alongWith(m_RobotState.setTargetCommand(RobotState.Target.SPEAKER)));
 
         // Operator: DPad Up: Shooter/Arm to AMP Position & Speed (when pressed)
         m_operatorController.povUp().whileTrue(
                 m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.AMP)
-                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.AMP)));
+                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.AMP))
+                        .alongWith(m_RobotState.setTargetCommand(RobotState.Target.AMP)));
 
         // Operator: DPad Right: Arm to Harmony Position (when pressed)
         m_operatorController.povRight().whileTrue(                
@@ -288,7 +291,8 @@ public class RobotContainer {
         // Operator: DPad Down: Arm to Subwoofer Position (when pressed)
         m_operatorController.povDown().whileTrue(                
             m_ShooterSubsystem.setStateCommand(Shooter.ShooterState.SUBWOOFER)
-                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.SUBWOOFER)));
+                        .alongWith(m_ArmSubsystem.setStateCommand(Arm.ArmState.SUBWOOFER))
+                        .alongWith(m_RobotState.setTargetCommand(RobotState.Target.SPEAKER)));
                         //   .until(() -> (m_ShooterSubsystem.isShooterAtSpeed()
                         //        && m_ArmSubsystem.isArmAtState().getAsBoolean()
                         //         .andThen(m_StageSubsystem.setStateCommand(Stage.State.SHOOTING))))

@@ -94,7 +94,7 @@ public class Intake extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
-        SmartDashboard.putString("Intake State", getState().toString());
+        displayInfo(true);
 
         m_intakeLead.set(state.getStateOutput());
     }
@@ -105,24 +105,20 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * A method querying a boolean state of the subsystem (for example, a
-     * digital sensor).
-     *
-     * @return true if intake speed if it is within the allowed tolerance, returns false if not
-
-     */
-    public boolean isIntakeAtSpeed(double targetSpeed, double tolerance) {
-        // Note that CoreTalonFX getVelocity() returns in rotations per second
-        double intakeAverage = (m_intakeLead.getVelocity().getValueAsDouble() + m_intakeFollow.getVelocity().getValueAsDouble()) / 2.0;
-        return MathUtil.isNear(targetSpeed, intakeAverage, tolerance);
-    }
-
-    /**
      * Example command factory method. Periodic tells the intake to run according to the state
      *
      * @return a command setting the intake state to the argument
      */
     public Command setStateCommand(State intakestate) {
         return startEnd(() -> this.state = intakestate, () -> this.state = State.OFF);
+    }
+
+    public void displayInfo(boolean debug) {
+        if (debug) {
+            SmartDashboard.putString("Intake State", getState().toString());
+            SmartDashboard.putNumber("Intake Setpoint", state.getStateOutput());
+            SmartDashboard.putNumber("Intake speed", m_intakeLead.getVelocity().getValueAsDouble());
+            SmartDashboard.putNumber("Intake Current Draw", m_intakeLead.getSupplyCurrent().getValueAsDouble());
+        }
     }
 }

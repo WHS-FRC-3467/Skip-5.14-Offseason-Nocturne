@@ -92,10 +92,7 @@ public class Stage extends SubsystemBase {
             beambreakSupplier = () -> false; // If note not in stage anymore, open beamstate
         }
 
-        SmartDashboard.putNumber("Stage Setpoint Velocity", state.getStateOutput());
-        SmartDashboard.putNumber("Stage 'Velocity'", thrifty_nova.getVelocity());
-        SmartDashboard.putBoolean("Note in Stage", !m_stageBeamBreak.get());
-        SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw());
+        displayInfo(true);
 
         thrifty_nova.setPercentOutput(state.getStateOutput());
     }
@@ -151,4 +148,13 @@ public class Stage extends SubsystemBase {
         return startEnd(() -> this.state = stageState, ()-> this.state = State.OFF);
     }
 
+    public void displayInfo(boolean debug) {
+        if (debug) {
+            SmartDashboard.putString("Stage state", state.toString());
+            SmartDashboard.putNumber("Stage Setpoint", state.getStateOutput());
+            SmartDashboard.putNumber("Stage Velocity", thrifty_nova.getVelocity());
+            SmartDashboard.putBoolean("Note in Stage", !m_stageBeamBreak.get());
+            SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw());
+        }
+    }
 }
