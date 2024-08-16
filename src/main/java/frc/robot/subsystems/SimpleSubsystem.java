@@ -9,7 +9,8 @@ import java.util.function.DoubleSupplier;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-
+import frc.robot.Util.ThriftyNova;
+import frc.robot.Constants.CanConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -37,6 +38,8 @@ public class SimpleSubsystem extends SubsystemBase {
   private State state = State.OFF;
 
   TalonFX m_motor = new TalonFX(Constants.ExampleCTREMotorConfig.ID_Motor);
+  //ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.ID_Motor);
+  // Make sure to either use TalonFX or ThriftyNova 
   private final DutyCycleOut m_percent = new DutyCycleOut(0);
   private final NeutralOut m_brake = new NeutralOut();
 

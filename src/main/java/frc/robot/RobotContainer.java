@@ -16,6 +16,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.SimpleSubsystem;
+import frc.robot.subsystems.Stage;
 
 public class RobotContainer {
   private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
@@ -27,6 +28,7 @@ public class RobotContainer {
 
   public final SimpleSubsystem simpleSubsystem = new SimpleSubsystem();
   public final Intake intakeSubsystem = new Intake();
+  public final Stage stageSubsystem = new Stage();
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
@@ -55,6 +57,8 @@ public class RobotContainer {
 
 
     drivetrain.registerTelemetry(logger::telemeterize);
+
+    joystick.a().whileTrue(stageSubsystem.setStateCommand(Stage.State.ON));
 
   }
 

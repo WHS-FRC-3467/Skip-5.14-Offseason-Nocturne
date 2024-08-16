@@ -27,7 +27,9 @@ public class Stage extends SubsystemBase {
   @RequiredArgsConstructor
   @Getter
   public enum State {
-    ON(() -> 1.0),
+    Intake(() -> 1.0),
+    Eject(() -> -1.0),
+    FeedToShooter(() -> 1.0),
     OFF(() -> 0.0);
 
     private final DoubleSupplier outputSupplier;
@@ -36,6 +38,8 @@ public class Stage extends SubsystemBase {
       return outputSupplier.getAsDouble();
     }
   }
+
+  private State state = State.OFF;
 
   ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.ID_StageMotor);
     // Make sure to import CanConstants in Constants.java
@@ -56,11 +60,22 @@ public class Stage extends SubsystemBase {
     // This method will be called once per scheduler run
     m_noteInStage = m_stageBeamBreak.get() ? false : true;
 
-        SmartDashboard.putBoolean("Note In Stage?", m_noteInStage);
+      SmartDashboard.putBoolean("Note In Stage?", m_noteInStage);
 
-        if (RobotConstants.kIsStageTuningMode) {
-            //SmartDashboard.putNumber("Stage Current Draw", m_stageMotor.getSupplyCurrent());
-            SmartDashboard.putBoolean("Is Stage Running", isStageRunning());
-        }
+      if (RobotConstants.kIsStageTuningMode) {
+          //SmartDashboard.putNumber("Stage Current Draw", m_stageMotor.getSupplyCurrent());
+          SmartDashboard.putBoolean("Is Stage Running", isStageRunning());
+      }
   }
+
+  public boolean isStageRunning() {
+      return m_stageRunning;
+  }
+
+  public Command stageToIntakeCommand(State Intake) {
+    return new RunCommand(() -> this.Intake, state); () -> (this.state = State.OFF);
+  }
+
+  
+  
 }
