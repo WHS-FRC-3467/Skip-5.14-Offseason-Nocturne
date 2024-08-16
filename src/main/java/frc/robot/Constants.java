@@ -12,7 +12,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 public class Constants {
 
 
-    public static final class ExampleCTREMotorConfig { 
+    public static final class ExampleSubsystemConstants { 
         public static final int ID_Motor = 0;
 
         public static TalonFXConfiguration motorConfig() {

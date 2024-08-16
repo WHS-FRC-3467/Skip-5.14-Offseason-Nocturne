@@ -4,8 +4,6 @@
 
 package frc.robot.subsystems;
 
-import java.util.function.DoubleSupplier;
-
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -32,13 +30,13 @@ public class SimpleSubsystem extends SubsystemBase {
   @Setter
   private State state = State.OFF;
 
-  TalonFX m_motor = new TalonFX(Constants.ExampleCTREMotorConfig.ID_Motor);
+  TalonFX m_motor = new TalonFX(Constants.ExampleSubsystemConstants.ID_Motor);
   private final DutyCycleOut m_percent = new DutyCycleOut(0);
   private final NeutralOut m_brake = new NeutralOut();
 
   /** Creates a new SimpleSubsystem. */
   public SimpleSubsystem() {
-    m_motor.getConfigurator().apply(Constants.ExampleCTREMotorConfig.motorConfig());
+    m_motor.getConfigurator().apply(Constants.ExampleSubsystemConstants.motorConfig());
 
   }
 
