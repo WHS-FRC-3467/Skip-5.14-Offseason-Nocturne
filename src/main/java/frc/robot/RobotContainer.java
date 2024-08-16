@@ -52,6 +52,8 @@ public class RobotContainer {
   //TODO: test current system functionality
   //TODO: add two stage joystick trigger functionality, i.e. auto intake when fully pulled, auto shoot when partially pulled
   //TODO: add shoot on the move
+  //TODO: fusion of user and auto driving?
+  //TODO: sendable chooser with filters
 
   
   private void configureBindings() {
@@ -75,7 +77,7 @@ public class RobotContainer {
     // Run the stage to shoot
     driverCtrl.rightTrigger().whileTrue(stage.setStateCommand(Stage.State.SHOOT));
 
-    //TODO: Add Harmony climb
+    //Climb
     driverCtrl.y().whileTrue(Commands.either(arm.setStateCommand(Arm.State.HARMONY), arm.setStateCommand(Arm.State.CLIMB), () -> isHarmonyClimbing));
 
     //Subwoofer
