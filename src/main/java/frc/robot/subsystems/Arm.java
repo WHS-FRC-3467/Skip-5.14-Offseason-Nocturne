@@ -50,7 +50,8 @@ public class Arm extends SubsystemBase {
     @RequiredArgsConstructor
     @Getter
     public enum ArmState {
-        STOWED  (()-> -17.0, ()-> 2.0),
+        STOWED  (()-> -19.0, ()-> 2.0),
+        INTAKE  (()-> -17.0, ()-> 2.0),
         SUBWOOFER(()-> -7.6, ()-> 1.0),
         PODIUM  (()-> 6.0, ()-> 0.4),
         WING    (()-> 10.0, ()-> 0.4), // Specific Wing Shot
@@ -164,13 +165,7 @@ public class Arm extends SubsystemBase {
     public void periodic() {
       // This method will be called once per scheduler run
         // Put the measurement of the arm and state of the arm on shuffleboard
-        if ((Constants.RobotConstants.kIsTuningMode) || (Constants.RobotConstants.kIsArmTuningMode)) {
-            SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
-            SmartDashboard.putString("Arm state", getM_ArmState().toString());
-            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(m_armEncoder.getDistance()));
-            SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
-            SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
-        }
+        displayInfo((Constants.RobotConstants.kIsTuningMode) || (Constants.RobotConstants.kIsArmTuningMode));
        
         // If testing arm angle through Tunablenumber tempDegree, set the arm to the manually desired angle
         if (Constants.RobotConstants.kIsArmTuningMode) {
@@ -240,5 +235,14 @@ public class Arm extends SubsystemBase {
      */
     public Command setDistanceToTarget(double distance) {
         return startEnd(() -> this.m_distance = ()-> distance, () -> this.m_distance = () -> -0.1);
+    }
+
+    public void displayInfo(boolean debug) {
+        SmartDashboard.putBoolean("Arm at state?", isArmAtState().getAsBoolean());
+        SmartDashboard.putString("Arm state", getM_ArmState().toString());
+        SmartDashboard.putNumber("Arm Setpoint", m_ArmState.getStateOutput());
+        SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(m_armEncoder.getDistance()));
+        SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
+        SmartDashboard.putBoolean("Arm at tempDegree?", isArmAtTempSetpoint().getAsBoolean());
     }
 }
