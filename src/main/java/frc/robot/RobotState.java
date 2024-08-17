@@ -61,7 +61,7 @@ public class RobotState {
             return robotPose.getTranslation();
         } else {
             // Add translation based on current speed and time in the future deltaT
-            return robotPose.getTranslation().plus(new Translation2d(deltaT * robotSpeeds.vxMetersPerSecond, deltaT * robotSpeeds.vyMetersPerSecond));
+            return robotPose.getTranslation().minus(new Translation2d(deltaT * robotSpeeds.vxMetersPerSecond, deltaT * robotSpeeds.vyMetersPerSecond));
         }
         
     }
@@ -71,11 +71,9 @@ public class RobotState {
         return (DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getRotation() : target.redTargetPose.getRotation();
     }
 
-    // TODO: need to invert
     public Rotation2d getAngleToTarget() {
-        return getFuturePose()
-                .minus((DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getTranslation() : target.redTargetPose.getTranslation())
-                .getAngle().unaryMinus(); // TODO: Test if unaryMinus fixed it
+        return ((DriverStation.getAlliance().get() == Alliance.Blue) ? target.blueTargetPose.getTranslation() : target.redTargetPose.getTranslation())
+                .minus(getFuturePose()).getAngle();
     }
 
     private double getDistanceToTarget() {

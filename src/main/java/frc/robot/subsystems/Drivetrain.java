@@ -15,10 +15,12 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.RobotState;
@@ -66,11 +68,11 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     private final SwerveRequest.ApplyChassisSpeeds AutoRequest = new SwerveRequest.ApplyChassisSpeeds();
 
     private SwerveRequest.FieldCentric fieldCentric = new SwerveRequest.FieldCentric()
-            .withDeadband(DriveConstants.MaxSpeed * 0.1).withRotationalDeadband(DriveConstants.MaxAngularRate * 0.1) 
+            .withDeadband(DriveConstants.MaxSpeed * 0.01).withRotationalDeadband(DriveConstants.MaxAngularRate * 0.01) 
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
-            .withDeadband(DriveConstants.MaxSpeed * 0.1).withRotationalDeadband(DriveConstants.MaxAngularRate * 0.1) 
+            .withDeadband(DriveConstants.MaxSpeed * 0.01).withRotationalDeadband(DriveConstants.MaxAngularRate * 0.01) 
             .withDriveRequestType(DriveRequestType.Velocity);
 
     //private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
@@ -140,6 +142,11 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
 
     @Override
     public void periodic() {
+        
+        if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+            controllerX = -controllerX;
+            controllerY = -controllerY;
+        }
 
         RobotState.getInstance().setRobotPose(getState().Pose); //Tell RobotState current pose
         RobotState.getInstance().setRobotSpeeds(getCurrentRobotChassisSpeeds()); //Tell RobotState current speeds
@@ -184,7 +191,9 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
                 .withTargetDirection(RobotState.getInstance().getAngleOfTarget()));
             }
             default -> {}
-        } 
+        }
+
+        SmartDashboard.putNumber("Gyro Reading", getState().Pose.getRotation().getDegrees());
 
     }
 
@@ -199,9 +208,9 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     }
 
     public void setControllerInput(double controllerX, double controllerY, double controllerOmega) {
-        this.controllerX = controllerX;
-        this.controllerY = controllerY;
-        this.controllerOmega = controllerOmega;
+        this.controllerX = MathUtil.applyDeadband(controllerX, 0.1);
+        this.controllerY = MathUtil.applyDeadband(controllerY, 0.1);
+        this.controllerOmega = MathUtil.applyDeadband(controllerOmega, 0.1);
     }
 
     public boolean atGoal() {

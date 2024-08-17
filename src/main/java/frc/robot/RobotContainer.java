@@ -39,8 +39,6 @@ public class RobotContainer {
   //TODO: Move to robotstate?
   private boolean isHarmonyClimbing = false;
 
-  //TODO: add invert for alliance
-  //TODO: add scaling so that is the deadzone is .2, then .2 to 1 is actually 0 to 1
   //TODO: add photon vision
   //TODO: add note detection
   //TODO: add auto intake
@@ -49,18 +47,17 @@ public class RobotContainer {
   //TODO: add Mechanism2d displays for subsystems
   //TODO: add leds
   //TODO: add controller rumble
-  //TODO: test current system functionality
   //TODO: add two stage joystick trigger functionality, i.e. auto intake when fully pulled, auto shoot when partially pulled
-  //TODO: add shoot on the move
   //TODO: fusion of user and auto driving?
   //TODO: sendable chooser with filters
+  //TODO: brownout override and accel settings
 
   
   private void configureBindings() {
 
     //Every loop of the periodic, pass the joystick values to the drivetrain
     drivetrain.setDefaultCommand(drivetrain.run(
-        () -> drivetrain.setControllerInput(driverCtrl.getLeftX(), driverCtrl.getLeftY(), driverCtrl.getRightX())));
+        () -> drivetrain.setControllerInput(-driverCtrl.getLeftY(), -driverCtrl.getLeftX(), -driverCtrl.getRightX())));
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
@@ -94,7 +91,7 @@ public class RobotContainer {
     driverCtrl.x()
         .whileTrue(robotState.setTargetCommand(TARGET.SPEAKER)
             .alongWith(arm.setStateCommand(Arm.State.LOOKUP))
-            .alongWith(shooter.setStateCommand(Shooter.State.SHOOT))); // Lookup shot
+            .alongWith(shooter.setStateCommand(Shooter.State.SHOOT)));
 
     //Feed
     driverCtrl.back()
