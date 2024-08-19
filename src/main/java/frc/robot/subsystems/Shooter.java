@@ -21,31 +21,19 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration; // Go to class descrpitions for more info
 //import com.ctre.phoenix6.controls.Follower; I am not sure if I need this, it may just be for the Arm
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.DeviceIdentifier;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
-
 //import frc.robot.Constants.CanConstants;
 //import frc.robot.Constants.RobotConstants;
 //import frc.robot.Constants.ShooterConstants;
@@ -56,139 +44,138 @@ import lombok.Setter;
 
 //import java.util.function.DoubleSupplier;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Shooter extends SubsystemBase {
 
-    @RequiredArgsConstructor
-    @Getter
-    public enum State {
+  @RequiredArgsConstructor
+  @Getter
+  public enum State {
 
-        OFF(() -> 0.0, () -> 0.0), // To either hold a note or stop running
-        SHOOT(() -> 30.0, () -> 30.0), // Gets the note from the stage
-        AMP(() -> 20.0, () -> 30.0), // Shoots or just runs the shooter
-        FERRY(() -> 40.0, () -> 40.0); //A random shooter state (all of these values are random)
+    OFF(() -> 0.0, () -> 0.0), // To either hold a note or stop running
+    SHOOT(() -> 30.0, () -> 30.0), // Gets the note from the stage
+    AMP(() -> 20.0, () -> 30.0), // Shoots or just runs the shooter
+    FERRY(() -> 40.0, () -> 40.0); // A random shooter state (all of these values are random)
 
-        private final DoubleSupplier outputSupplierUno;
-        private final DoubleSupplier outputSupplierDos;
+    private final DoubleSupplier outputSupplierUno;
+    private final DoubleSupplier outputSupplierDos;
 
-        private double getLeftStateOutput() {
-            return outputSupplierUno.getAsDouble();
-        }
-
-        private double getRightStateOutput() {
-            return outputSupplierDos.getAsDouble();
-        }
+    private double getLeftStateOutput() {
+      return outputSupplierUno.getAsDouble();
     }
 
-    NeutralOut m_neutral = new NeutralOut();
-    VelocityVoltage m_temp = new VelocityVoltage(0.0, 0.0, false, 0.0, 0, false, false, false);
-    @Getter
-    @Setter
-    public double maxVelocity = 20; //Use Nocturn's values
-    @Getter
-    @Setter
-    public double maxAcceleration = 5; //Or this
-    @Getter
-    @Setter
+    private double getRightStateOutput() {
+      return outputSupplierDos.getAsDouble();
+    }
+  }
 
-    private ProfiledPIDController pidController = new ProfiledPIDController(18, 0, 0.2,
+  NeutralOut m_neutral = new NeutralOut();
+  VelocityVoltage m_temp = new VelocityVoltage(0.0, 0.0, false, 0.0, 0, false, false, false);
+  
+  @Getter
+  @Setter
+  public double maxVelocity = 20; // Use Nocturn's values
+  
+  @Getter
+  @Setter
+  public double maxAcceleration = 5; // Or this
+
+
+  private ProfiledPIDController pidController = new ProfiledPIDController(18, 0, 0.2,
       new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration));
 
+  @Getter
+  @Setter
+  private State state = State.OFF;
 
-  
-    @Getter
-    @Setter
-    private State state = State.OFF;
+  // Some Constants
+  public static final int ID_ShooterLeft = 15;
+  public static final int ID_ShooterRight = 17;
 
+  // Initialize motor controllers
+  TalonFX m_leftShooter = new TalonFX(18); // These are made up deviceIds, I'm not sure what the actual Ids are.
+  TalonFX m_rightShooter = new TalonFX(19);
 
-    //Some Constants
-        public static final int ID_ShooterLeft = 15;
-        public static final int ID_ShooterRight = 17;
+  // Voltage Velocity - instantiate (to create an object from a class (I think))
+  // --> done
+  // Set max velocity --> Done
+  // Declare a PID controler --> Done
+  // Declare what P, I, and D are. --> Done
+  // Neutral mode - what it can do while stopped --> Did Coast
 
-    // Initialize motor controllers
-    TalonFX m_leftShooter = new TalonFX(18); //These are made up deviceIds, I'm not sure what the actual Ids are.
-    TalonFX m_rightShooter = new TalonFX(19);
+  // Current limits - Yes
 
-    //Voltage Velocity - instantiate (to create an object from a class (I think)) --> done
-    //Set max velocity --> Done
-    //Declare a PID controler --> Done
-    //Declare what P, I, and D are. --> Done
-    // Neutral mode - what it can do while stopped --> Did Coast
+  public Shooter() {
 
-    // Current limits - Yes
+    m_leftShooter.setInverted(true);
+    m_rightShooter.setInverted(false);
+    //Bryson: look at the new motor config setup in the constants file in main branch for how to move these to the constants folder
+    TalonFXConfiguration m_configuration = new TalonFXConfiguration();
+    m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    m_configuration.CurrentLimits.StatorCurrentLimit = 70;
+    m_configuration.CurrentLimits.StatorCurrentLimitEnable = true;
+    m_configuration.CurrentLimits.SupplyCurrentLimit = 60;
+    m_configuration.CurrentLimits.SupplyCurrentLimitEnable = true;
+    m_configuration.CurrentLimits.SupplyCurrentThreshold = 80;
+    m_configuration.CurrentLimits.SupplyTimeThreshold = 0.1;
 
-
-    public Shooter() {
-
-        m_leftShooter.setInverted(true);
-        m_rightShooter.setInverted(false);
-        TalonFXConfiguration m_configuration = new TalonFXConfiguration();
-          m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Coast; 
-          m_configuration.CurrentLimits.StatorCurrentLimit = 70;
-          m_configuration.CurrentLimits.StatorCurrentLimitEnable = true;
-          m_configuration.CurrentLimits.SupplyCurrentLimit = 60;
-          m_configuration.CurrentLimits.SupplyCurrentLimitEnable = true;
-          m_configuration.CurrentLimits.SupplyCurrentThreshold = 80;
-          m_configuration.CurrentLimits.SupplyTimeThreshold = 0.1;
-
-      PowerDistribution m_PowerDistribution = new PowerDistribution();
-
-      boolean atState = ((Math.abs(state.getRightStateOutput() - m_rightShooter.getVelocity().getValueAsDouble()) <= 1) && (Math.abs(state.getLeftStateOutput() - m_leftShooter.getVelocity().getValueAsDouble()) <= 1));
-
-      SmartDashboard.putNumber("Voltage", m_PowerDistribution.getVoltage());
-      SmartDashboard.putNumber("TotalCurrent", m_PowerDistribution.getTotalCurrent());
-      SmartDashboard.putNumber("Power Distribution", m_PowerDistribution.getTotalPower());
-      SmartDashboard.putString("Shooter State", state.toString());
-      SmartDashboard.putBoolean("AtState", atState); 
-
-    
-
-        //NeutralOut m_neutral = new NeutralOut();
-        //talonFXConfigurator.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        //TalonFXConfiguration m_configuration = new TalonFXConfiguration();
-
-    }
-
-    @Override
-    public void periodic() {
-    //Periodic will check if there is input coming from the xbox controls (I hope)
-    //then the states will respond accordingly (in theory)
-
-      if (state == State.OFF) {
-          m_leftShooter.set(0.0);
-          m_rightShooter.set(0.0);
-      } 
-     /* else {
-          //Set m_temp to VelocityVoltage based on state
-
-        //Set m_temp to be a percentage of VoltageVelocity --> not sure if this is necessary
-         m_leftShooter.setControl(m_temp.withVelocity(state.getLeftStateOutput()));
-         m_rightShooter.setControl(m_temp.withVelocity(state.getRightStateOutput()));
-        //if the state is SHOOT, then hopefully set m_temp as a percent of xbox controler input for shooting
-      } */
-      else if (state == State.SHOOT) {
-          m_leftShooter.set(22.0);
-          m_rightShooter.set(22.0);
-      }
-
-      else if (state == State.AMP) {
-          m_leftShooter.set(25.0);  //This a guess value
-          m_rightShooter.set(25.0); //This is also a guess value
-      }
-
-      else if (state == State.FERRY) {
-          m_leftShooter.set(0.0); //This is also a guess value
-          m_rightShooter.set(0.0); //This is a guess value
-      }
-
-    }
+    boolean atState = ((Math.abs(state.getRightStateOutput() - m_rightShooter.getVelocity().getValueAsDouble()) <= 1)
+        && (Math.abs(state.getLeftStateOutput() - m_leftShooter.getVelocity().getValueAsDouble()) <= 1));
 
 
-    public Command setStateCommand(State state) {
-      return startEnd(() -> this.state = state, () -> this.state = State.OFF);
-    }
+    SmartDashboard.putString("Shooter State", state.toString());
+    SmartDashboard.putBoolean("AtState", atState);
 
+    // NeutralOut m_neutral = new NeutralOut();
+    // talonFXConfigurator.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    // TalonFXConfiguration m_configuration = new TalonFXConfiguration();
 
   }
-//Note to self, it is VelocityVoltage, not VoltageVelocity :)
+
+  @Override
+  public void periodic() {
+    // Periodic will check if there is input coming from the xbox controls (I hope)
+    // then the states will respond accordingly (in theory)
+
+    if (state == State.OFF) {
+      m_leftShooter.set(0.0);
+      m_rightShooter.set(0.0);
+    }
+
+    //Bryson: the implementation you have commented out is correct
+    /*
+     * else {
+     * //Set m_temp to VelocityVoltage based on state
+     * 
+     * //Set m_temp to be a percentage of VoltageVelocity --> not sure if this is
+     * necessary
+     * m_leftShooter.setControl(m_temp.withVelocity(state.getLeftStateOutput()));
+     * m_rightShooter.setControl(m_temp.withVelocity(state.getRightStateOutput()));
+     * //if the state is SHOOT, then hopefully set m_temp as a percent of xbox
+     * controler input for shooting
+     * }
+     */
+
+     //Bryson: remove these 
+    else if (state == State.SHOOT) {
+      m_leftShooter.set(22.0);
+      m_rightShooter.set(22.0);
+    }
+
+    else if (state == State.AMP) {
+      m_leftShooter.set(25.0); // This a guess value
+      m_rightShooter.set(25.0); // This is also a guess value
+    }
+
+    else if (state == State.FERRY) {
+      m_leftShooter.set(0.0); // This is also a guess value
+      m_rightShooter.set(0.0); // This is a guess value
+    }
+
+  }
+
+  public Command setStateCommand(State state) {
+    return startEnd(() -> this.state = state, () -> this.state = State.OFF);
+  }
+
+}
+// Note to self, it is VelocityVoltage, not VoltageVelocity :)
