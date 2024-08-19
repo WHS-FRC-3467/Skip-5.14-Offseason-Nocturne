@@ -58,12 +58,13 @@ public class Arm extends SubsystemBase {
         AMP     (()-> 77.0, ()-> 0.4), // May getDistanceToTarget() for amp and feed
         CLIMB   (()-> 71.0, ()-> 1),
         HARMONY (()-> 105.0, ()-> 1),
+        //Bryson: the line below needs to be flipped so the shot angle is the first argument
         AIMING  (()-> 0, ()-> RobotState.getInstance().getShotAngle()),      // Dynamic - Used for aiming - tje angle supplier is just a filler value
         FEED    (()-> -3.0, ()-> 2.0);
 
         private final DoubleSupplier angleSupplier;
         private final DoubleSupplier toleranceSupplier;
-
+        
         private double getStateOutput() {
             return angleSupplier.getAsDouble();
         }
@@ -77,6 +78,7 @@ public class Arm extends SubsystemBase {
     @Setter
     ArmState m_ArmState = ArmState.STOWED;
 
+    //Bryson: Unneeded
     @Getter
     @Setter
     ArmState m_FutureArm = ArmState.STOWED; // May be marked for depreciation
@@ -127,11 +129,13 @@ public class Arm extends SubsystemBase {
                         ArmConstants.k_ARM_KP,
                         ArmConstants.k_ARM_KI,
                         ArmConstants.k_ARM_KD,
-                        new TrapezoidProfile.Constraints(
+                        new TrapezoidProfile.Constraints( //Bryson: lower these speeds
                                 ArmConstants.kMaxVelocityRadPerSecond,
                                 ArmConstants.kMaxAccelerationRadPerSecSquared));
 
         // https://v6.docs.ctr-electronics.com/en/latest/docs/hardware-reference/talonfx/improving-performance-with-current-limits.html
+
+        //Bryson: move to constants, copy example in main
         var talonFXConfigurator = new TalonFXConfiguration();
         /* Arm: enable stator current limit */
         talonFXConfigurator.CurrentLimits.StatorCurrentLimit = 60; // Limit stator to 60 amps
@@ -155,6 +159,8 @@ public class Arm extends SubsystemBase {
         m_armFollow.setControl(new Follower(m_armLead.getDeviceID(), true));
 
         m_armEncoder.setDutyCycleRange(ArmConstants.kDuty_Cycle_Min, ArmConstants.kDuty_Cycle_Max);
+
+        //Bryson: needs to be offset in duty cycle, not rads
         m_armEncoder.setPositionOffset(ArmConstants.k_ARM_HORIZONTAL_OFFSET_RADIANS/(Math.PI*2));
         // dutycycle returns in fractions of a rotation, not radians, hence the x2pi because we use radians
         // this sets the distance per rotation to be equal to 2pi radians
@@ -165,6 +171,8 @@ public class Arm extends SubsystemBase {
     public void periodic() {
       // This method will be called once per scheduler run
         // Put the measurement of the arm and state of the arm on shuffleboard
+
+        //Bryson: instead of a boolean tuning mode block, make a new state that .get() from dashboard as the supplier
         displayInfo((Constants.RobotConstants.kIsTuningMode) || (Constants.RobotConstants.kIsArmTuningMode));
        
         // If testing arm angle through Tunablenumber tempDegree, set the arm to the manually desired angle
@@ -178,6 +186,7 @@ public class Arm extends SubsystemBase {
             // Calculate the feedforward from the controller setpoint
             double feedforward = m_feedforward.calculate(m_controller.getSetpoint().position, m_controller.getSetpoint().velocity);
             // Add the feedforward to the PID output to get the motor output
+            
             m_armLead.setVoltage(m_controller.calculate(m_armEncoder.getDistance()) + feedforward);
         }
         
@@ -199,6 +208,7 @@ public class Arm extends SubsystemBase {
 
     }
 
+    //Bryson: can re replaced by m_controller.atGoal, doesn't need to be supplier
     public BooleanSupplier isArmAtState() {
         // m_armEncoder.getDistance() gets the position in radians (which is 2pi * duty cycle units)
         if (MathUtil.isNear(Math.toRadians(m_ArmState.getStateOutput()), m_armEncoder.getDistance(), Math.toRadians(m_ArmState.getTolerance()))) {
@@ -209,6 +219,7 @@ public class Arm extends SubsystemBase {
         return ()-> false;
     }
 
+    //Bryson: can re replaced by tuning state as said above
     public BooleanSupplier isArmAtTempSetpoint() {
         if (MathUtil.isNear(Math.toRadians(tempDegree.get()), m_armEncoder.getDistance(), Math.toRadians(m_ArmState.getTolerance()))) {
             isAtState = ()-> true;
@@ -228,6 +239,8 @@ public class Arm extends SubsystemBase {
 
     }
 
+
+    //Bryson: Distance to target should be handeled inside of robotState, arm should only ask the robotState for shot angle and robotstate handles the rest
     /*
      * Possible future implementation: When aiming, setStateCommand() to AIMING for Arm and Shooter
      * m_distance is supposed to be the horizontal distance to target
