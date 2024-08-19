@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DriveConstants;
@@ -73,6 +74,12 @@ public class RobotContainer {
 
     // Run the stage to shoot
     driverCtrl.rightTrigger().whileTrue(stage.setStateCommand(Stage.State.SHOOT));
+
+    // Run the stage to shoot when arm and shooter are ready
+    // TODO: check if this gets cancelled too early
+    driverCtrl.rightBumper().whileTrue(Commands.waitUntil(arm::atGoal)
+        .alongWith(Commands.waitUntil(shooter::atGoal))
+        .andThen(stage.setStateCommand(Stage.State.SHOOT)));
 
     //Climb
     driverCtrl.y().whileTrue(Commands.either(arm.setStateCommand(Arm.State.HARMONY), arm.setStateCommand(Arm.State.CLIMB), () -> isHarmonyClimbing));
