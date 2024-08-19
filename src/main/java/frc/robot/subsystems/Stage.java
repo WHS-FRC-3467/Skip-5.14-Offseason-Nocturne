@@ -27,13 +27,14 @@ public class Stage extends SubsystemBase {
   @RequiredArgsConstructor
   @Getter
   public enum State {
+    //Bryson: rename to all caps, also we don't need this to be a doublesupplier, switch to just doubles similar to the simplesubsytem example
     Intake(() -> 1.0),
     Eject(() -> -1.0),
     FeedToShooter(() -> 1.0),
     OFF(() -> 0.0);
 
     private final DoubleSupplier outputSupplier;
-
+    //Bryson: you can removed this once you switch to doubles
     private double getStateOutput() {
       return outputSupplier.getAsDouble();
     }
@@ -42,12 +43,18 @@ public class Stage extends SubsystemBase {
   private State state = State.OFF;
 
   ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.ID_StageMotor);
-    // Make sure to import CanConstants in Constants.java
-    boolean m_noteInStage = false;
-    BooleanSupplier m_noteInStageSupplier;
-    boolean m_stageRunning = false;
-    DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
-    // Make sure to Import DIOConstants from Constants.java
+  // Make sure to import CanConstants in Constants.java
+  
+  boolean m_noteInStage = false;
+
+  //Bryson: not needed
+  BooleanSupplier m_noteInStageSupplier;
+
+  //Bryson: not needed
+  boolean m_stageRunning = false;
+
+  DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
+  // Make sure to Import DIOConstants from Constants.java
 
   /** Creates a new Stage. */
   public Stage() {
@@ -58,24 +65,30 @@ public class Stage extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+
+    //Bryson: move to method
     m_noteInStage = m_stageBeamBreak.get() ? false : true;
 
-      SmartDashboard.putBoolean("Note In Stage?", m_noteInStage);
+    //Bryson: Add code from simple subystem perodic to set output of the motor
 
-      if (RobotConstants.kIsStageTuningMode) {
-          //SmartDashboard.putNumber("Stage Current Draw", m_stageMotor.getSupplyCurrent());
-          SmartDashboard.putBoolean("Is Stage Running", isStageRunning());
-      }
+    SmartDashboard.putBoolean("Note In Stage?", m_noteInStage);
+
+    if (RobotConstants.kIsStageTuningMode) {
+      // SmartDashboard.putNumber("Stage Current Draw",
+      // m_stageMotor.getSupplyCurrent());
+      SmartDashboard.putBoolean("Is Stage Running", isStageRunning());
+    }
   }
 
+  //Bryson: create method called hasNote that returns a boolean 
+
+  //Bryson: not needed
   public boolean isStageRunning() {
-      return m_stageRunning;
+    return m_stageRunning;
   }
 
-  public Command stageToIntakeCommand(State Intake) {
-    return new RunCommand(() -> this.Intake, state); () -> (this.state = State.OFF);
+  public Command setStateCommand(State state) {
+    return startEnd(() -> this.state = state, () -> this.state = State.OFF);
   }
 
-  
-  
 }

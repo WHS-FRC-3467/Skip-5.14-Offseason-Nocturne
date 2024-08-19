@@ -57,9 +57,6 @@ public class RobotContainer {
 
 
     drivetrain.registerTelemetry(logger::telemeterize);
-
-    joystick.a().whileTrue(stageSubsystem.setStateCommand(Stage.State.ON));
-
   }
 
   public RobotContainer() {
