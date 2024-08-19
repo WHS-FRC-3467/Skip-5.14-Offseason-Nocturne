@@ -17,6 +17,10 @@ import frc.robot.generated.TunerConstants;
 /** Add your docs here. */
 public class Constants {
 
+    public static final class RobotConstants {
+        public static final boolean kIsTuningMode = true;
+    }
+
     public static final class ArmConstants { 
         public static final int ID_ArmLeader = 25;
         public static final int ID_ArmFollower = 26;  

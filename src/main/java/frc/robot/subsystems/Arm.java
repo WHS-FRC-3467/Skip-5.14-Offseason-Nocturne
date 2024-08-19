@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotState;
 import frc.robot.Constants.ArmConstants;
+import frc.robot.Util.TunableNumber;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -39,7 +40,8 @@ public class Arm extends SubsystemBase {
     FEED(() -> -9.0),
     CLIMB(() -> 69.0),
     HARMONY(() -> 103.0),
-    LOOKUP(() -> RobotState.getInstance().getShotAngle());
+    LOOKUP(() -> RobotState.getInstance().getShotAngle()),
+    TUNING(() -> tuneArmSetpoint.get());
 
     private final DoubleSupplier outputSupplier;
 
@@ -51,6 +53,8 @@ public class Arm extends SubsystemBase {
   @Getter
   @Setter
   private State state = State.STOW;
+
+  public static TunableNumber tuneArmSetpoint = new TunableNumber("Tunable Arm Angle", 0.0);
 
 
   //Create a on RIO Profile PID Controller, adding constraints to limit max vel and accel 
@@ -76,6 +80,7 @@ public class Arm extends SubsystemBase {
 
   /** Creates a new ArmSubsystem. */
   public Arm() {
+    
 
     m_armMotor.getConfigurator().apply(ArmConstants.motorConfig());
     m_armFollowerMotor.getConfigurator().apply(ArmConstants.motorConfig());
