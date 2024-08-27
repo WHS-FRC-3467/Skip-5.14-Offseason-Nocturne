@@ -123,6 +123,25 @@ public class Constants {
 
     public static class ArmConstants {
 
+        public static TalonFXConfiguration motorConfig() {
+                // Documentation: https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/api-usage/configuration.html
+            TalonFXConfiguration m_configuration = new TalonFXConfiguration();
+                // Set BRAKE as neutralmodevalue - USE COAST WHEN TESTING FOR OFFSETS - KEEP THE ROBOT DISABLED
+            m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+            m_configuration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+            m_configuration.Voltage.PeakForwardVoltage = 12.0;
+            m_configuration.Voltage.PeakReverseVoltage = -12.0; 
+                /* Arm Supply Current limit of 30 amps */
+            m_configuration.CurrentLimits.SupplyCurrentLimit = 30; 
+            m_configuration.CurrentLimits.SupplyCurrentThreshold = 85;
+            m_configuration.CurrentLimits.SupplyTimeThreshold = 0.1; 
+            m_configuration.CurrentLimits.SupplyCurrentLimitEnable = true; 
+            m_configuration.CurrentLimits.StatorCurrentLimit = 60;
+            m_configuration.CurrentLimits.StatorCurrentLimitEnable = true; 
+
+            return m_configuration;
+        }
+
         public static final double kSVolts = 0.5; // Static Gain (volts)
         public static final double kGVolts = 0.4; // Gravity Gain (volts)
         public static final double kVVoltSecondPerRad = 2.5; // Velocity Gain (volt seconds/radian)

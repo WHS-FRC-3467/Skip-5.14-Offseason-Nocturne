@@ -58,7 +58,7 @@ public class Arm extends SubsystemBase {
         AMP     (()-> 77.0, ()-> 0.4), // May getDistanceToTarget() for amp and feed
         CLIMB   (()-> 71.0, ()-> 1),
         HARMONY (()-> 105.0, ()-> 1),
-        AIMING  (()-> RobotState.getInstance().getShotAngle(), ()-> 0.5),      // Dynamic - Used for aiming
+        AIMING  (()-> RobotState.getInstance().getShotAngle(), ()-> 0.5),  // Dynamic - Used for aiming
         TUNING  (()-> tempDegree.get(), ()-> 1.0),
         FEED    (()-> -3.0, ()-> 2.0);
 
@@ -93,7 +93,7 @@ public class Arm extends SubsystemBase {
             ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
     
         // Arm Angle Adjustment via Shuffleboard
-                // If testing arm angle through Tunablenumber tempDegree, set the arm to the manually desired angle\r\n" + //
+             // If testing arm angle through Tunablenumber tempDegree, set the arm to the manually desired angle\r\n" + //
     @Getter
     private static TunableNumber tempDegree = new TunableNumber("Set Arm To Degrees", -17.0);
     private final NeutralOut m_neutral = new NeutralOut();
@@ -128,36 +128,19 @@ public class Arm extends SubsystemBase {
                                 ArmConstants.kMaxVelocityRadPerSecond,
                                 ArmConstants.kMaxAccelerationRadPerSecSquared));
 
-        // https://v6.docs.ctr-electronics.com/en/latest/docs/hardware-reference/talonfx/improving-performance-with-current-limits.html
 
-        //Bryson: move to constants, copy example in main
-        var talonFXConfigurator = new TalonFXConfiguration();
-        /* Arm: enable stator current limit */
-        talonFXConfigurator.CurrentLimits.StatorCurrentLimit = 60; // Limit stator to 60 amps
-        talonFXConfigurator.CurrentLimits.StatorCurrentLimitEnable = true; // enable the limiting
-        /* Arm Supply Current limit of 30 amps */
-        talonFXConfigurator.CurrentLimits.SupplyCurrentLimit = 30;
-        talonFXConfigurator.CurrentLimits.SupplyCurrentThreshold = 85; // If we exceed 50 amps
-        talonFXConfigurator.CurrentLimits.SupplyTimeThreshold = 0.1; // For at least 0.1 second
-        talonFXConfigurator.CurrentLimits.SupplyCurrentLimitEnable = true; // enable supply current limiting
-
-        // Set BRAKE as neutralmodevalue - USE COAST WHEN TESTING FOR OFFSETS - KEEP THE ROBOT DISABLED
-        talonFXConfigurator.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-
-        // Check this out: https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/api-usage/configuration.html
         /*
          * Apply the configurations to the motors, and set one to follow the other in
          * the same direction
          */
-        m_armLead.getConfigurator().apply(talonFXConfigurator);   
-        m_armFollow.getConfigurator().apply(talonFXConfigurator);
+        m_armLead.getConfigurator().apply(ArmConstants.motorConfig());
+        m_armFollow.getConfigurator().apply(ArmConstants.motorConfig());
         m_armFollow.setControl(new Follower(m_armLead.getDeviceID(), true));
-
+            /* Set range of duty cycle encoder in fractions of rotation */
         m_armEncoder.setDutyCycleRange(ArmConstants.kDuty_Cycle_Min, ArmConstants.kDuty_Cycle_Max);
 
-        //Bryson: needs to be offset in duty cycle, not rads
+            // Position offset in duty cycle, not rads
         m_armEncoder.setPositionOffset(ArmConstants.k_ARM_HORIZONTAL_OFFSET_DUTYCYCLE);
-        // dutycycle returns in fractions of a rotation, not radians, hence the x2pi because we use radians
         // this sets the distance per rotation to be equal to 2pi radians
         m_armEncoder.setDistancePerRotation(Math.PI*2);
     }
@@ -217,8 +200,8 @@ public class Arm extends SubsystemBase {
             SmartDashboard.putBoolean("Arm at state?", m_controller.atGoal());  // formerly isArmAtState().getAsBoolean()
             SmartDashboard.putString("Arm state", getM_ArmState().toString());
             SmartDashboard.putNumber("Arm Setpoint", m_ArmState.getStateOutput());
-            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(m_armEncoder.getDistance()));
-            SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0);
+            SmartDashboard.putNumber("Arm Angle Corrected", Units.radiansToDegrees(m_armEncoder.getDistance())); // Get distance returns radians
+            SmartDashboard.putNumber("Arm Angle uncorrected", m_armEncoder.getAbsolutePosition()*360.0); // Displays angle in degrees
         }
     }
 }
