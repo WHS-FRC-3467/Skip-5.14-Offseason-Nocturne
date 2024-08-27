@@ -29,8 +29,6 @@ import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 import frc.robot.Constants;
 import frc.robot.RobotState;
 import frc.robot.Constants.ArmConstants;
-import frc.robot.Constants.CanConstants;
-import frc.robot.Constants.DIOConstants;
 import frc.robot.Util.TunableNumber;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -84,9 +82,9 @@ public class Arm extends SubsystemBase {
     private double lowerLimit = -18.0;
     private double upperLimit = 106.0;
         
-    TalonFX m_armLead = new TalonFX(CanConstants.ID_ArmLeader);
-    TalonFX m_armFollow = new TalonFX(CanConstants.ID_ArmFollower);
-    DutyCycleEncoder m_armEncoder = new DutyCycleEncoder(DIOConstants.k_ARM_ENCODER_ID);
+    TalonFX m_armLead = new TalonFX(ArmConstants.ID_ArmLeader);
+    TalonFX m_armFollow = new TalonFX(ArmConstants.ID_ArmFollower);
+    DutyCycleEncoder m_armEncoder = new DutyCycleEncoder(ArmConstants.k_ARM_ENCODER_ID);
 
     private final ArmFeedforward m_feedforward = new ArmFeedforward(
             ArmConstants.kSVolts, ArmConstants.kGVolts,

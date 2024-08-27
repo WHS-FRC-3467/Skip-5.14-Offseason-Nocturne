@@ -55,7 +55,7 @@ public class Constants {
 
     }
 
-    public static class CanConstants {
+
         /* PDH Power Ports
         0. Front Left Drive
         1. Front Left Steer
@@ -88,28 +88,6 @@ public class Constants {
 
         // Drivebase CAN IDs are 1 -> 13
         // See generated/TunerConstants.java
-        // Shooter CAN IDs
-        public static final int ID_ShooterLeft = 15;
-        public static final int ID_ShooterRight = 17;
-
-        // Intake CAN IDs
-        public static final int ID_IntakeMotor = 19;
-        public static final int ID_IntakeFollower = 21;
-
-        //Stage CAN IDs
-        public static final int ID_StageMotor = 23;
-
-        // Arm CAN IDs
-        public static final int ID_ArmLeader = 25;
-        public static final int ID_ArmFollower = 26;    
-        public static final int LED_CANDLE = 27;
-    }
-
-    public static class DIOConstants {
-        public static final int k_INTAKE_BEAM_BREAK = 1;
-        public static final int k_ARM_ENCODER_ID = 0;
-
-    }
 
     public static class RobotConstants {
         public static final boolean kIsTuningMode = true;
@@ -122,6 +100,12 @@ public class Constants {
     }
 
     public static class ArmConstants {
+
+            // Arm CAN IDs
+        public static final int ID_ArmLeader = 25;
+        public static final int ID_ArmFollower = 26;    
+            // Arm DIO Constant
+        public static final int k_ARM_ENCODER_ID = 0;
 
         public static TalonFXConfiguration motorConfig() {
                 // Documentation: https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/api-usage/configuration.html
