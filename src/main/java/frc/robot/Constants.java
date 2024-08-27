@@ -132,13 +132,12 @@ public class Constants {
         public static final double k_ARM_KI = 0.0; // I Gain - Volts
         public static final double k_ARM_KD = 0.21; // D Gain - Volts
 
-        public static final double kMaxVelocityRadPerSecond = 4.0;
-        public static final double kMaxAccelerationRadPerSecSquared = 10.0;
+        public static final double kMaxVelocityRadPerSecond = 2.0;  // originally 4
+        public static final double kMaxAccelerationRadPerSecSquared = 5.0; // originally 10
 
         // Observed Arm Offsets
-        // Measured against the hardstop when the Arm is in the STOWED position
-        public static final double kARM_STARTING_OFFSET = Units.degreesToRadians(161.4); // marked for depreciation
-        public static final double k_ARM_HORIZONTAL_OFFSET_RADIANS = Units.degreesToRadians(180.4); // 180.4 deg when measured against the hardstop (stowed)
+        // Measured against the hardstop when the Arm is in the STOWED position. Divide by 360 to convert from degrees to duty cycle
+        public static final double k_ARM_HORIZONTAL_OFFSET_DUTYCYCLE = 180.4/360; // 180.4 deg when measured against the hardstop (stowed)
 
         public static final double kDuty_Cycle_Min = 1.0/1025.0;
         public static final double kDuty_Cycle_Max = 1024.0/1025.0;
