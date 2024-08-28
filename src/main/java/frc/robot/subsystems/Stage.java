@@ -18,6 +18,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
+import frc.robot.Constants.StageConstants;
 import frc.robot.Util.ThriftyNova;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,17 +28,14 @@ public class Stage extends SubsystemBase {
   @RequiredArgsConstructor
   @Getter
   public enum State {
-    //Bryson: rename to all caps, also we don't need this to be a doublesupplier, switch to just doubles similar to the simplesubsytem example
-    Intake(() -> 1.0),
-    Eject(() -> -1.0),
-    FeedToShooter(() -> 1.0),
-    OFF(() -> 0.0);
+    INTAKE(1.0),
+    EJECT(-1.0),
+    SHOOT(1.0),
+    OFF(0.0);
 
-    private final DoubleSupplier outputSupplier;
+    private final double output;
     //Bryson: you can removed this once you switch to doubles
-    private double getStateOutput() {
-      return outputSupplier.getAsDouble();
-    }
+    
   }
 
   private State state = State.OFF;
@@ -45,18 +43,24 @@ public class Stage extends SubsystemBase {
   ThriftyNova thrifty_nova = new ThriftyNova(CanConstants.ID_StageMotor);
   // Make sure to import CanConstants in Constants.java
   
+
   boolean m_noteInStage = false;
+  boolean m_isStageRunning = false;
 
-  //Bryson: not needed
-  BooleanSupplier m_noteInStageSupplier;
+  public void runStage(double speed) {
+    thrifty_nova.setPercentOutput(speed);
+    m_isStageRunning = true;
+  }
 
-  //Bryson: not needed
-  boolean m_stageRunning = false;
+  public void stopStage() {
+    thrifty_nova.setPercentOutput(0.0);
+    m_isStageRunning = false;
+  }
 
   DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
   // Make sure to Import DIOConstants from Constants.java
 
-  /** Creates a new Stage. */
+  // Creates a new Stage
   public Stage() {
     thrifty_nova.setInverted(false);
     thrifty_nova.setBrakeMode(true);
@@ -65,27 +69,30 @@ public class Stage extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-
-    //Bryson: move to method
-    m_noteInStage = m_stageBeamBreak.get() ? false : true;
-
-    //Bryson: Add code from simple subystem perodic to set output of the motor
-
-    SmartDashboard.putBoolean("Note In Stage?", m_noteInStage);
-
-    if (RobotConstants.kIsStageTuningMode) {
-      // SmartDashboard.putNumber("Stage Current Draw",
-      // m_stageMotor.getSupplyCurrent());
-      SmartDashboard.putBoolean("Is Stage Running", isStageRunning());
+    StageInfo(true);
+    
+    if (state == State.OFF) {
+     thrifty_nova.setBrakeMode(true);
+     m_isStageRunning = false;
+    } else {
+    thrifty_nova.setPercentOutput(state.getOutput());
     }
   }
 
-  //Bryson: create method called hasNote that returns a boolean 
+  private void StageInfo(boolean debug) {
+    if (debug) {
+      SmartDashboard.putBoolean("Note In Stage?", noteInStage());
+      SmartDashboard.putString("SimpleSubsystem State ", state.toString());
+      SmartDashboard.putNumber("StageVelocity ", thrifty_nova.getExtVelocity());
+      SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw()); 
+      SmartDashboard.putBoolean("Is Stage Running", m_isStageRunning);   
+    }
+  }  
 
-  //Bryson: not needed
-  public boolean isStageRunning() {
-    return m_stageRunning;
+  public boolean noteInStage() {
+    return !m_stageBeamBreak.get();
   }
+
 
   public Command setStateCommand(State state) {
     return startEnd(() -> this.state = state, () -> this.state = State.OFF);

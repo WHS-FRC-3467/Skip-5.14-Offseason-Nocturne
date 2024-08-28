@@ -1,3 +1,5 @@
+//ThriftyNova API v1.0.0
+
 package frc.robot.Util;
 
 import edu.wpi.first.hal.CANAPIJNI;

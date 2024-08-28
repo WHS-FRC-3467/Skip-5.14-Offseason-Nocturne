@@ -9,14 +9,18 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.generated.TunerConstants;
+
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.SimpleSubsystem;
 import frc.robot.subsystems.Stage;
+import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Arm;
 
 public class RobotContainer {
   private double MaxSpeed = TunerConstants.kSpeedAt12VoltsMps; // kSpeedAt12VoltsMps desired top speed
@@ -26,9 +30,12 @@ public class RobotContainer {
   private final CommandXboxController joystick = new CommandXboxController(0); // My joystick
   public final Drivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
 
-  public final SimpleSubsystem simpleSubsystem = new SimpleSubsystem();
-  public final Intake intakeSubsystem = new Intake();
-  public final Stage stageSubsystem = new Stage();
+  public final SimpleSubsystem simple = new SimpleSubsystem();
+  public final Intake intake = new Intake();
+  public final Stage stage = new Stage();
+  public final Shooter shoote = new Shooter();
+  public final Arm arm = new Arm();
+  
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
@@ -50,8 +57,12 @@ public class RobotContainer {
             .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
         ).ignoringDisable(true));
 
+    joystick.rightBumper().whileTrue(Commands.waitUntil(arm::atGoal)
+      .alongWith(Commands.waitUntil(shooter::atGoal))
+      .andThen(stage.setStateCommand(Stage.State.SHOOT)));
 
-    
+        
+
     // reset the field-centric heading on left bumper press
     joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
 
