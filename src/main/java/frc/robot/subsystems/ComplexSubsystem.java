@@ -58,7 +58,8 @@ public class ComplexSubsystem extends SubsystemBase {
 
     if (state == State.HOME && pidController.atGoal()) {
       // motor.setControl(Neutral)
-    } else {
+    } 
+    else {
       output = pidController.calculate(currentAngle, goalAngle) + ff.calculate(0, 0);
       // motor.setControl(output);
     }

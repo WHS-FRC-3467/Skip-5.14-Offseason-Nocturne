@@ -29,8 +29,43 @@ public class Constants {
             m_configuration.CurrentLimits.SupplyCurrentLimitEnable = true; 
             m_configuration.CurrentLimits.StatorCurrentLimit = 70;
             m_configuration.CurrentLimits.StatorCurrentLimitEnable = true; 
+            
+
 
             return m_configuration;
         }
+
     }
+    
+public static final class ShooterConstants {
+    public static final int ID_ShooterLeft = 15; //These are (possibly) made up deviceIds, I'm not sure what the actual Ids are...
+    public static final int ID_ShooterRight = 17;
+    public static final double ShooterVelocityTolerance = 5.0;
+    public static TalonFXConfiguration shooterMotorConfig(int deviceID) {
+        TalonFXConfiguration m_configuration = new TalonFXConfiguration();
+
+        m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Coast; 
+        if (deviceID == 17) {
+            m_configuration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        } else {
+            m_configuration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        }
+        m_configuration.CurrentLimits.StatorCurrentLimit = 70;
+        m_configuration.CurrentLimits.StatorCurrentLimitEnable = true;
+        m_configuration.CurrentLimits.SupplyCurrentLimit = 60;
+        m_configuration.CurrentLimits.SupplyCurrentLimitEnable = true;
+        m_configuration.CurrentLimits.SupplyCurrentThreshold = 80;
+        m_configuration.CurrentLimits.SupplyTimeThreshold = 0.1;
+
+            // set up slot 0 gains - for Velocity PID
+            m_configuration.Slot0.kS = 0.1;
+            m_configuration.Slot0.kV = 0.125;
+            m_configuration.Slot0.kP = 0.3;
+            m_configuration.Slot0.kI = 0;
+            m_configuration.Slot0.kD = 0;
+
+
+        return m_configuration;
+    }
+}
 }

@@ -6,6 +6,7 @@ package frc.robot;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.pathplanner.lib.path.PathPlannerTrajectory.State;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -15,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.SimpleSubsystem;
 
 public class RobotContainer {
@@ -27,6 +29,7 @@ public class RobotContainer {
 
   public final SimpleSubsystem simpleSubsystem = new SimpleSubsystem();
   public final Intake intakeSubsystem = new Intake();
+  public final Shooter shooterSubsystem = new Shooter();
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
       .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
@@ -35,6 +38,8 @@ public class RobotContainer {
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+ 
+
 
   /* Path follower */
   private Command runAuto = drivetrain.getAutoPath("Tests");
@@ -53,6 +58,10 @@ public class RobotContainer {
     // reset the field-centric heading on left bumper press
     joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
 
+    joystick.b().whileTrue(shooterSubsystem.setStateCommand(Shooter.State.SHOOT));
+    joystick.a().onTrue(shooterSubsystem.setStateCommand(Shooter.State.OFF));
+    joystick.x().whileTrue(shooterSubsystem.setStateCommand(Shooter.State.AMP));
+    joystick.y().whileTrue(shooterSubsystem.setStateCommand(Shooter.State.FEED));
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
