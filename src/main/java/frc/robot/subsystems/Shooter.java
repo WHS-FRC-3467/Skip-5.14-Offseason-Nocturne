@@ -9,18 +9,13 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.DeviceIdentifier;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
 
@@ -33,26 +28,26 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Shooter extends SubsystemBase {
 
-    @RequiredArgsConstructor
-    @Getter
-    public enum State {
+  @RequiredArgsConstructor
+  @Getter
+  public enum State {
 
         OFF(() -> 0.0, () -> 0.0), // To either hold a note or stop running
         SHOOT(() -> 30.0, () -> 30.0), // Shoots or just runs the shooter
         AMP(() -> 20.0, () -> 30.0), // "Shoots" into the amp
         FEED(() -> 40.0, () -> 40.0); //A random shooter state (all of the above values are random as well)
 
-        private final DoubleSupplier outputSupplierUno;
-        private final DoubleSupplier outputSupplierDos;
+    private final DoubleSupplier outputSupplierUno;
+    private final DoubleSupplier outputSupplierDos;
 
-        private double getLeftStateOutput() {
-            return outputSupplierUno.getAsDouble();
-        }
-
-        private double getRightStateOutput() {
-            return outputSupplierDos.getAsDouble();
-        }
+    private double getLeftStateOutput() {
+      return outputSupplierUno.getAsDouble();
     }
+
+    private double getRightStateOutput() {
+      return outputSupplierDos.getAsDouble();
+    }
+  }
 
     NeutralOut m_neutral = new NeutralOut();
     VelocityVoltage m_temp = new VelocityVoltage(0.0, 0.0, false, 0.0, 0, false, false, false);
@@ -69,12 +64,12 @@ public class Shooter extends SubsystemBase {
 
     PowerDistribution m_PowerDistribution = new PowerDistribution();
 
-    public Shooter() {
+  public Shooter() {
 
         m_leftShooter.getConfigurator().apply(ShooterConstants.shooterMotorConfig(m_leftShooter.getDeviceID()));
         m_rightShooter.getConfigurator().apply(ShooterConstants.shooterMotorConfig(m_rightShooter.getDeviceID()));
 
-    }
+  }
 
     @Override
     public void periodic() {
@@ -86,7 +81,8 @@ public class Shooter extends SubsystemBase {
       if (state == State.OFF) {
           m_leftShooter.set(0.0);
           m_rightShooter.set(0.0);
-      } 
+      }     //Bryson: the implementation you have commented out is correct
+
       else {
 
         //Set m_temp to be a percentage of VelocityVoltage --> not sure if this is necessary
@@ -116,9 +112,9 @@ public class Shooter extends SubsystemBase {
         SmartDashboard.putBoolean("AtState", atState()); 
     }
 
-    public Command setStateCommand(State state) {
-      return startEnd(() -> this.state = state, () -> this.state = State.OFF);
-    }
+  public Command setStateCommand(State state) {
+    return startEnd(() -> this.state = state, () -> this.state = State.OFF);
+  }
 
 
   }
