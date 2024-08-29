@@ -45,16 +45,16 @@ public class Stage extends SubsystemBase {
   
 
   boolean m_noteInStage = false;
-  boolean m_isStageRunning = false;
+ 
 
   public void runStage(double speed) {
     thrifty_nova.setPercentOutput(speed);
-    m_isStageRunning = true;
+
   }
 
   public void stopStage() {
     thrifty_nova.setPercentOutput(0.0);
-    m_isStageRunning = false;
+
   }
 
   DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
@@ -72,8 +72,7 @@ public class Stage extends SubsystemBase {
     StageInfo(true);
     
     if (state == State.OFF) {
-     thrifty_nova.setBrakeMode(true);
-     m_isStageRunning = false;
+     thrifty_nova.setPercentOutput(0);
     } else {
     thrifty_nova.setPercentOutput(state.getOutput());
     }
@@ -81,15 +80,14 @@ public class Stage extends SubsystemBase {
 
   private void StageInfo(boolean debug) {
     if (debug) {
-      SmartDashboard.putBoolean("Note In Stage?", noteInStage());
+      SmartDashboard.putBoolean("Note In Stage?", isNoteInStage());
       SmartDashboard.putString("SimpleSubsystem State ", state.toString());
       SmartDashboard.putNumber("StageVelocity ", thrifty_nova.getExtVelocity());
       SmartDashboard.putNumber("Stage Current Draw", thrifty_nova.getCurrentDraw()); 
-      SmartDashboard.putBoolean("Is Stage Running", m_isStageRunning);   
     }
   }  
 
-  public boolean noteInStage() {
+  public boolean isNoteInStage() {
     return !m_stageBeamBreak.get();
   }
 
