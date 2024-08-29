@@ -80,7 +80,6 @@ public class Arm extends SubsystemBase {
 
   /** Creates a new ArmSubsystem. */
   public Arm() {
-    
 
     m_armMotor.getConfigurator().apply(ArmConstants.motorConfig());
     m_armFollowerMotor.getConfigurator().apply(ArmConstants.motorConfig());
@@ -93,6 +92,8 @@ public class Arm extends SubsystemBase {
 
     pidController.setTolerance(ArmConstants.tolerance);
     pidController.setIZone(100); // TODO: Figure out actual value
+
+    SmartDashboard.putData("Set State Tuning",setStateCommand(State.TUNING));
 
   }
 
