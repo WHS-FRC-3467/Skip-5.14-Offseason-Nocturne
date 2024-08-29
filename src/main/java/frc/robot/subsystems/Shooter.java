@@ -11,6 +11,7 @@ import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -62,13 +63,14 @@ public class Shooter extends SubsystemBase {
 
     //vocab: instantiate - to create an object from a class (I believe)
 
-    PowerDistribution m_PowerDistribution = new PowerDistribution();
+
 
   public Shooter() {
 
         m_leftShooter.getConfigurator().apply(ShooterConstants.shooterMotorConfig(m_leftShooter.getDeviceID()));
         m_rightShooter.getConfigurator().apply(ShooterConstants.shooterMotorConfig(m_rightShooter.getDeviceID()));
 
+      
   }
 
     @Override
@@ -79,8 +81,8 @@ public class Shooter extends SubsystemBase {
 
 
       if (state == State.OFF) {
-          m_leftShooter.set(0.0);
-          m_rightShooter.set(0.0);
+          m_leftShooter.setControl(m_neutral);
+          m_rightShooter.setControl(m_neutral);
       }     //Bryson: the implementation you have commented out is correct
 
       else {
@@ -94,22 +96,17 @@ public class Shooter extends SubsystemBase {
     }
 
     public boolean atState() {
-      double leftErr = Math.abs(state.getLeftStateOutput() - m_leftShooter.getVelocity().getValueAsDouble());
-      double rightErr = Math.abs(state.getRightStateOutput() - m_rightShooter.getVelocity().getValueAsDouble());
-      if ((leftErr + rightErr)/2 < ShooterConstants.ShooterVelocityTolerance) {
-        return true;
-      }
-      return false;
+      
+      return MathUtil.isNear(state.getLeftStateOutput(), m_leftShooter.getVelocity().getValueAsDouble(), ShooterConstants.ShooterVelocityTolerance) 
+      && MathUtil.isNear(state.getRightStateOutput(), m_rightShooter.getVelocity().getValueAsDouble(), ShooterConstants.ShooterVelocityTolerance);
     }
     
     
     public void displayInfo(boolean debug) {
-          if (debug);
-        SmartDashboard.putNumber("Voltage", m_PowerDistribution.getVoltage());
-        SmartDashboard.putNumber("TotalCurrent", m_PowerDistribution.getTotalCurrent());
-        SmartDashboard.putNumber("Power Distribution", m_PowerDistribution.getTotalPower());
+      if (debug) {
         SmartDashboard.putString("Shooter State", state.toString());
-        SmartDashboard.putBoolean("AtState", atState()); 
+        SmartDashboard.putBoolean("AtState", atState());
+      }
     }
 
   public Command setStateCommand(State state) {
