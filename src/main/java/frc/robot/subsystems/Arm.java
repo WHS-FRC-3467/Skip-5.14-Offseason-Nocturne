@@ -51,8 +51,6 @@ public class Arm extends SubsystemBase {
         STOWED  (()-> -19.0, ()-> 2.0),
         INTAKE  (()-> -17.0, ()-> 2.0),
         SUBWOOFER(()-> -7.6, ()-> 1.0),
-        PODIUM  (()-> 6.0, ()-> 0.4),
-        WING    (()-> 10.0, ()-> 0.4), // Specific Wing Shot
         AMP     (()-> 77.0, ()-> 0.4), // May getDistanceToTarget() for amp and feed
         CLIMB   (()-> 71.0, ()-> 1),
         HARMONY (()-> 105.0, ()-> 1),
@@ -64,7 +62,7 @@ public class Arm extends SubsystemBase {
         private final DoubleSupplier toleranceSupplier;
         
         private double getStateOutput() {
-            return angleSupplier.getAsDouble();
+            return Units.degreesToRadians(angleSupplier.getAsDouble());
         }
 
         private double getTolerance() {
@@ -79,8 +77,8 @@ public class Arm extends SubsystemBase {
     public BooleanSupplier isAtState = ()-> false;
 
         // Limit the amount of degrees that the arm can go
-    private double lowerLimit = -18.0;
-    private double upperLimit = 106.0;
+    private double lowerLimit = Units.degreesToRadians(-18.0);
+    private double upperLimit = Units.degreesToRadians(106.0);
         
     TalonFX m_armLead = new TalonFX(ArmConstants.ID_ArmLeader);
     TalonFX m_armFollow = new TalonFX(ArmConstants.ID_ArmFollower);
@@ -97,8 +95,10 @@ public class Arm extends SubsystemBase {
     private final NeutralOut m_neutral = new NeutralOut();
         // Declare the ProfiledPIDController
     ProfiledPIDController m_controller;
-        // Declare the goalAngle of the Arm
+        // Declare the goalAngle of the Arm - intermediate step
     double goalAngle;
+        // Declare variable that determines whether to display info on SmartDashboard
+    boolean debugging = false;
 
     /**
     * Creates a new Arm.
@@ -126,7 +126,6 @@ public class Arm extends SubsystemBase {
                                 ArmConstants.kMaxVelocityRadPerSecond,
                                 ArmConstants.kMaxAccelerationRadPerSecSquared));
 
-
         /*
          * Apply the configurations to the motors, and set one to follow the other in
          * the same direction
@@ -145,11 +144,11 @@ public class Arm extends SubsystemBase {
 
     @Override
     public void periodic() {
-      // This method will be called once per scheduler run
-            SmartDashboard.putData("Tuning state command", setStateCommand(ArmState.TUNING));
+        // This method will be called once per scheduler run
+        SmartDashboard.putData("Tuning Arm command", setStateCommand(ArmState.TUNING));
+        SmartDashboard.putData("Debugging Arm command", setDebugCommand());
 
-        //Bryson: instead of a boolean tuning mode block, make a new state that .get() from dashboard as the supplier
-        displayInfo(m_ArmState == ArmState.TUNING);
+        displayInfo(debugging);
        
         if ((m_ArmState == ArmState.STOWED) && (m_controller.atGoal())) {
             // If the arm is already stowed, hold it using neutral mode (Coast or brake)
@@ -158,7 +157,7 @@ public class Arm extends SubsystemBase {
             // The "regular" case
             goalAngle = MathUtil.clamp(m_ArmState.getStateOutput(), lowerLimit, upperLimit);
             m_controller.setTolerance(m_ArmState.getTolerance()); 
-            m_controller.setGoal(Units.degreesToRadians(goalAngle));
+            m_controller.setGoal(goalAngle);
                 // Use Output
             // Calculate the feedforward from the controller setpoint
             double feedforward = m_feedforward.calculate(m_controller.getSetpoint().position, m_controller.getSetpoint().velocity);
@@ -169,18 +168,11 @@ public class Arm extends SubsystemBase {
 
     }
 
-    public BooleanSupplier isArmAtState() {
+    public boolean isAtGoal() {
         // m_armEncoder.getDistance() gets the position in radians (which is 2pi * duty cycle units)
         // MathUtil.isNear(Math.toRadians(m_ArmState.getStateOutput()), m_armEncoder.getDistance(), Math.toRadians(m_ArmState.getTolerance()))
-        if (m_controller.atGoal()) {
-            isAtState = ()-> true;
-            return ()-> true;
-        }
-        isAtState = ()-> false;
-        return ()-> false;
+        return m_controller.atGoal();
     }
-
-
 
     /* return a command that:
     *  1. Change the Armstate
@@ -192,6 +184,13 @@ public class Arm extends SubsystemBase {
 
     }
     
+    /* return a command that
+     * When debugging button in pressed...
+     * change from not debugging to debugging or vice versa
+     */
+    private Command setDebugCommand() {
+        return runOnce(()-> debugging = !debugging);
+    }
     // Put the measurement of the arm and state of the arm on shuffleboard
     public void displayInfo(boolean debug) {
         if (debug) {
